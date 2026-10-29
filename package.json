@@ -1,0 +1,18 @@
+{
+  "name": "@civ-clone/civ1-tileset-pixelart",
+  "version": "0.1.0",
+  "description": "An original, royalty-free 32px pixel-art tileset for civ.one, drawn by code from a written spec",
+  "repository": "git@github.com:civ-clone/civ1-tileset-pixelart.git",
+  "author": "dom111 <dom111@users.noreply.github.com>",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "build": "node src/build.js pack tileset.json",
+    "previews": "node tools/sheet-units.js previews/units.png && node tools/sheet-misc.js previews/misc.png && node tools/preview-map.js previews/map.png 2 && node tools/sheet-masks.js previews/terrain-joins.png mountains hills forest jungle swamp desert plains tundra arctic grassland river",
+    "prettier:check": "prettier --config .prettierrc '**/*.js' --check",
+    "prettier:format": "prettier --config .prettierrc '**/*.js' --write"
+  },
+  "devDependencies": {
+    "prettier": "2.8.8"
+  }
+}
