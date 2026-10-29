@@ -12,6 +12,4 @@ jobs:
           node-version: 22
       - run: npx --yes prettier@2.8.8 --config .prettierrc '**/*.js' --check
       # The committed sprites must be what the code draws.
-      - run: npm run build
-      - run: git diff --exit-code -- pack
-      - run: test -z "$(git status --porcelain -- pack)"
+      - run: npm run check

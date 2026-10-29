@@ -53,6 +53,9 @@ npm run build
 npm run previews
 ```
 
+`npm run check` fails unless the committed pack is what the code draws. It compares pixels, not bytes, as PNG
+compression changes with the zlib Node ships.
+
 ## Licence
 
 MIT, code and sprites alike: see [LICENSE](LICENSE).

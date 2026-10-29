@@ -8,6 +8,7 @@
   "private": true,
   "scripts": {
     "build": "node src/build.js pack tileset.json",
+    "check": "node tools/check-pack.js",
     "previews": "node tools/sheet-units.js previews/units.png && node tools/sheet-misc.js previews/misc.png && node tools/preview-map.js previews/map.png 2 && node tools/sheet-masks.js previews/terrain-joins.png mountains hills forest jungle swamp desert plains tundra arctic grassland river",
     "prettier:check": "prettier --config .prettierrc '**/*.js' --check",
     "prettier:format": "prettier --config .prettierrc '**/*.js' --write"
