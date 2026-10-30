@@ -13,7 +13,9 @@ written descriptions in [SPEC.md](SPEC.md), and whoever wrote that code worked f
 only. The code is the record of how every pixel was made: build it and you get the committed sprites exactly (CI
 checks that).
 
-Only the sprite names and sizes come from civ.one's existing tileset format, so the pack fits the renderer as it is.
+Only the sprite names come from civ.one's existing tileset format, so the pack fits the renderer as it is. Interface
+icons, citizens and cursors are drawn at the size the renderer shows them (`ui` in `tileset.json`), not enlarged from
+smaller originals.
 
 ## What's in it
 

@@ -2,12 +2,13 @@
 
 Every sprite in the pack is drawn from these descriptions by the code in `src/`. Nothing was traced, sampled or
 converted from another game's art: whoever wrote the drawing code worked from this spec and the pack's own renders
-only. The sprite names and sizes follow the tileset format civ.one already reads (the names in `tileset.json`), so the
-pack fits the renderer as it is.
+only. The sprite names follow the tileset format civ.one already reads (the names in `tileset.json`), so the pack fits
+the renderer as it is. Interface sprites are drawn at the size the renderer shows them, which `ui` in `tileset.json`
+gives.
 
 ## Format
 
-- 32 × 32 square tiles. Interface icons keep the small sizes the interface lays out for them (listed below).
+- 32 × 32 square tiles. Interface sprites have their own sizes (listed below).
 - Player colour keys: `#60E064` (fill) and `#2C7800` (border and shadow), which the game swaps for each player's
   colours. The city picture uses `#000000` for the owner's second colour instead.
 - Figures have a 1px near-black outline (`#141018`) and are lit from the top left (light top and left edges, dark
@@ -121,25 +122,30 @@ Drawn over the terrain, in the lower right of the tile unless noted.
 
 ## Interface
 
+The yield icons, citizens, pollution icon and torch cursor are drawn at the size the renderer shows them, given by
+`ui` in `tileset.json` (14px icons, 16px-wide citizens standing 12px apart, a 26px cursor), so they are not enlarged.
+Citizens keep to the middle 12px; only what they hold reaches the edges. Men (`_m`, and specialists without `_f`) have
+short dark hair and trousers; women (`_f`) have long blond hair and a dress.
+
 | Sprite | Size | Picture |
 | --- | --- | --- |
-| city/food | 7 × 7 | Scored bread loaf |
-| city/production | 7 × 7 | Hammer |
-| city/trade | 7 × 7 | Two opposed arrows |
-| city/gold | 7 × 7 | Coin |
-| city/luxury | 7 × 7 | Gem |
-| city/bulb | 7 × 7 | Light bulb |
-| city/sad | 7 × 7 | Frowning face |
-| city/people_happy_{m,f} | 8 × 16 | Bright figure, arms up |
-| city/people_content_{m,f} | 8 × 16 | Neutral standing figure |
-| city/people_unhappy_{m,f} | 8 × 16 | Dark, slumped figure |
-| city/people_tax(_f) | 8 × 16 | Figure in gold, holding a coin |
-| city/people_science(_f) | 8 × 16 | Figure in white and blue, holding a flask |
-| city/people_luxury(_f) | 8 × 16 | Entertainer in purple and red with a lute |
-| city/pollution | 16 × 16 | Smokestack with grey-brown puffs |
+| city/food | 14 × 14 | Bread loaf with three scored cuts |
+| city/production | 14 × 14 | Hammer, steel head at the top left, wooden handle |
+| city/trade | 14 × 14 | Two opposed arrows, blue pointing right over red pointing left |
+| city/gold | 14 × 14 | Coin with a raised rim and a stamped bar |
+| city/luxury | 14 × 14 | Cut gem, crown and pavilion facets |
+| city/bulb | 14 × 14 | Light bulb with a glowing filament and a screw base |
+| city/sad | 14 × 14 | Frowning face with worried brows |
+| city/people_happy_{m,f} | 16 × 32 | Figure in green, both arms up, smiling |
+| city/people_content_{m,f} | 16 × 32 | Figure in khaki, arms down |
+| city/people_unhappy_{m,f} | 16 × 32 | Figure in dark grey, head bowed, arms hanging, frowning |
+| city/people_tax(_f) | 16 × 32 | Figure in gold, holding a coin up in the right hand |
+| city/people_science(_f) | 16 × 32 | Figure in white and blue, holding a blue flask in front |
+| city/people_luxury(_f) | 16 × 32 | Entertainer in purple and red, strumming a lute |
+| city/pollution | 14 × 14 | Brick smokestack with grey-brown puffs growing as they drift up and right |
 | status/science_{0,25,50,75} | 8 × 8 | A bulb brightening in four steps |
 | status/pollution_{0,25,50,75} | 8 × 8 | A sun going from calm to hot red |
 | cursor/go | 12 × 12 | Green arrow, tip at the top left |
-| cursor/torch | 13 × 13 | Flaming torch, tip at the top left |
+| cursor/torch | 26 × 26 | Flaming torch in a metal cup, flame tip at the top left, handle running down-right |
 | general/texture_1 | 16 × 16 | Seamless warm parchment |
 | general/texture_2 | 16 × 16 | Seamless dark stone |
