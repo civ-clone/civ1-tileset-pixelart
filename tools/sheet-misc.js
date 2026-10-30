@@ -1,10 +1,13 @@
-// Contact sheet of every misc sprite at 4×: `node src/sheet-misc.js [out.png]`.
+// Contact sheet of every misc sprite at 4×: `node tools/sheet-misc.js [out.png]`.
 const { Spr, png, badge, recolour } = require('../src/lib');
 const misc = require('../src/misc');
 
+// each group starts a row: icons, citizens, pollution and meters, then cursors, textures and map sprites
+const rowStarts = ['city/people_happy_m', 'city/pollution', 'cursor/go'];
 const gap = 4,
-  W = 300;
-const items = [];
+  W = 340;
+const items = [],
+  breaks = new Set();
 const swap = (spr, main, dark) => {
   const o = new Spr(spr.w, spr.h).rect(0, 0, spr.w, spr.h, main);
   spr.p.forEach((c, i) => c && (o.p[i] = c === '#000000' ? dark : c));
@@ -12,6 +15,7 @@ const swap = (spr, main, dark) => {
 };
 for (const [name, f] of Object.entries(misc)) {
   const s = f();
+  if (rowStarts.includes(name)) breaks.add(items.length);
   if (name === 'map/city') {
     items.push(swap(s, '#e04838', '#7a1810'), swap(s, '#4870e0', '#182c78'));
   } else if (name === 'map/fortify') {
@@ -26,8 +30,8 @@ for (const [name, f] of Object.entries(misc)) {
 let x = gap,
   y = gap,
   rowH = 0;
-const pos = items.map((s) => {
-  if (x + s.w + gap > W) {
+const pos = items.map((s, i) => {
+  if (x + s.w + gap > W || (breaks.has(i) && x > gap)) {
     x = gap;
     y += rowH + gap;
     rowH = 0;
