@@ -163,9 +163,10 @@ for (const [k, draw] of Object.entries(units)) {
   draw(fig);
   fig.outline();
   f.over(fig, 0, 2);
-  out[`units/${k}`] = badge().shadow(f, KEY_B, 1, 1).over(f);
+  // Kept to the hex, as every sprite is, so a wide figure doesn't draw over its neighbours' corners.
+  out[`units/${k}`] = onHex(badge().shadow(f, KEY_B, 1, 1).over(f));
 }
-for (const [k, f] of Object.entries(combat)) out[`units/${k}`] = new Spr(W, H).over(f(), 0, 2);
+for (const [k, f] of Object.entries(combat)) out[`units/${k}`] = onHex(new Spr(W, H).over(f(), 0, 2));
 
 // ---------- interface ----------
 // The square pack's own: they aren't drawn on the map's tiles.

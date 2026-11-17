@@ -94,7 +94,6 @@ for (const [name, c, r] of [
   ['improvements/irrigation', 7, 6],
   ['improvements/irrigation', 6, 7],
   ['improvements/mine', 8, 3],
-  ['terrain/shield', 5, 2],
   ['terrain/horse', 10, 8],
   ['terrain/coal', 13, 4],
   ['terrain/gold', 9, 2],
@@ -107,6 +106,8 @@ for (const [name, c, r] of [
   ['map/fort', 14, 5],
 ])
   put(name, c, r);
+// The shield goes where the descriptor anchors it, not at the tile's corner.
+out.over(T['terrain/shield'], 5 * W + 11, 2 * ROW + 12);
 const player = (s, light, dark) => recolour(s, light, dark);
 const at2 = (s, c, r) => out.over(s, c * W + (r & 1) * (W / 2), r * ROW);
 at2(T['map/city'], 7, 5);

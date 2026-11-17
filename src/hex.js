@@ -189,8 +189,8 @@ const FEATURES = {
   tundra: (([a, b, c]) => [Fx(a, 9, 14), Fx(b, 22, 24), Fx(c, 15, 31)])(sq('tundra')),
   arctic: (([a, b]) => [Fx(a, 13, 16), Fx(b, 21, 29)])(sq('arctic')),
   swamp: (([a, b, c]) => [Fx(a, 8, 15), Fx(b, 22, 20), Fx(c, 14, 30)])(sq('swamp')),
-  // Trees and peaks: three on the hex's own middle, and three at its edges' middles, which run on into a joined
-  //  neighbour (and are kept out of an unjoined one).
+  // Trees: most sit at or near an edge's middle and run on into a joined neighbour (and are kept out of an unjoined
+  //  one), so an isolated forest keeps only the two wholly inside it.
   forest: (([c11, b45, b5, c10, b4, c9, b4b, c10b]) => [
     Fx(c11, 9, 17),
     Fx(b45, 22, 14),
