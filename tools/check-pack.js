@@ -1,4 +1,4 @@
-// Fails unless the committed pack is what the code draws: builds it afresh and compares every sprite's pixels (not
+// Fails unless the committed packs are what the code draws: builds each afresh and compares every sprite's pixels (not
 //  its bytes, which change with the zlib Node ships) and the descriptor. `node tools/check-pack.js`
 const fs = require('fs'),
   os = require('os'),
@@ -6,13 +6,7 @@ const fs = require('fs'),
   zlib = require('zlib'),
   { execFileSync } = require('child_process');
 
-const root = path.join(__dirname, '..'),
-  committed = path.join(root, 'pack'),
-  fresh = fs.mkdtempSync(path.join(os.tmpdir(), 'pack-'));
-
-execFileSync(process.execPath, [path.join(root, 'src/build.js'), fresh, path.join(root, 'tileset.json')], {
-  stdio: 'inherit',
-});
+const root = path.join(__dirname, '..');
 
 // Width, height and the inflated scanlines of a PNG the pack's own writer made.
 const pixels = (file) => {
@@ -39,24 +33,39 @@ const walk = (dir, base = dir) =>
     )
     .sort();
 
-const a = walk(committed),
-  b = walk(fresh),
-  problems = [
-    ...a.filter((f) => !b.includes(f)).map((f) => `${f}: no longer drawn`),
-    ...b.filter((f) => !a.includes(f)).map((f) => `${f}: drawn but not committed`),
-  ];
+// The square pack and the hexagonal one, each with its descriptor.
+const PACKS = [
+  ['pack', 'tileset.json'],
+  ['pack-hex', 'tileset-hex.json'],
+];
+let failed = false;
+for (const [dir, manifest] of PACKS) {
+  const committed = path.join(root, dir),
+    fresh = fs.mkdtempSync(path.join(os.tmpdir(), 'pack-'));
 
-for (const f of a.filter((f) => b.includes(f))) {
-  const [x, y] = [path.join(committed, f), path.join(fresh, f)];
-  const same = f.endsWith('.png') ? pixels(x) === pixels(y) : fs.readFileSync(x).equals(fs.readFileSync(y));
-  if (!same) problems.push(`${f}: differs`);
+  execFileSync(process.execPath, [path.join(root, 'src/build.js'), fresh, path.join(root, manifest)], {
+    stdio: 'inherit',
+  });
+
+  const a = walk(committed),
+    b = walk(fresh),
+    problems = [
+      ...a.filter((f) => !b.includes(f)).map((f) => `${f}: no longer drawn`),
+      ...b.filter((f) => !a.includes(f)).map((f) => `${f}: drawn but not committed`),
+    ];
+
+  for (const f of a.filter((f) => b.includes(f))) {
+    const [x, y] = [path.join(committed, f), path.join(fresh, f)];
+    const same = f.endsWith('.png') ? pixels(x) === pixels(y) : fs.readFileSync(x).equals(fs.readFileSync(y));
+    if (!same) problems.push(`${f}: differs`);
+  }
+
+  fs.rmSync(fresh, { recursive: true, force: true });
+
+  if (problems.length) {
+    console.error(`${dir} is not what the code draws (run npm run build):\n  ${problems.join('\n  ')}`);
+    failed = true;
+  } else console.log(`${dir} is what the code draws: ${a.length} files.`);
 }
 
-fs.rmSync(fresh, { recursive: true, force: true });
-
-if (problems.length) {
-  console.error(`The pack is not what the code draws (run npm run build):\n  ${problems.join('\n  ')}`);
-  process.exit(1);
-}
-
-console.log(`The pack is what the code draws: ${a.length} files.`);
+process.exit(failed ? 1 : 0);

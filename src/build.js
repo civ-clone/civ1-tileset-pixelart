@@ -1,5 +1,6 @@
 // Writes every sprite of the pack as <out>/<name>.png, checks the list against the manifest's required sprites, and
-//  copies the manifest: `node src/build.js <out dir> <manifest.json>`.
+//  copies the manifest: `node src/build.js <out dir> <manifest.json>`. A manifest for the hexagonal grid
+//  (`tileset-hex.json`) builds the hexagonal pack (`src/hex-map.js`).
 const fs = require('fs'),
   path = require('path');
 const { png, unit } = require('./lib');
@@ -11,13 +12,16 @@ const misc = require('./misc');
 const [out, manifestPath] = process.argv.slice(2);
 const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
 const sprites = {};
-for (const [k, s] of Object.entries(terrainSprites)) sprites[`terrain/${k}`] = s;
-for (const [k, s] of Object.entries(specials)) sprites[`terrain/${k}`] = s;
-for (const [k, s] of Object.entries(imp)) sprites[`improvements/${k}`] = s;
-for (const [k, s] of Object.entries(fog)) sprites[`map/${k}`] = s;
-for (const [k, f] of Object.entries(units)) sprites[`units/${k}`] = unit(f);
-for (const [k, f] of Object.entries(combat)) sprites[`units/${k}`] = f();
-for (const [k, f] of Object.entries(misc)) sprites[k] = f();
+if (manifest.grid === 'hex-odd-r') Object.assign(sprites, require('./hex-map'));
+else {
+  for (const [k, s] of Object.entries(terrainSprites)) sprites[`terrain/${k}`] = s;
+  for (const [k, s] of Object.entries(specials)) sprites[`terrain/${k}`] = s;
+  for (const [k, s] of Object.entries(imp)) sprites[`improvements/${k}`] = s;
+  for (const [k, s] of Object.entries(fog)) sprites[`map/${k}`] = s;
+  for (const [k, f] of Object.entries(units)) sprites[`units/${k}`] = unit(f);
+  for (const [k, f] of Object.entries(combat)) sprites[`units/${k}`] = f();
+  for (const [k, f] of Object.entries(misc)) sprites[k] = f();
+}
 
 const wanted = [...manifest.assets.required, ...manifest.assets.optional];
 const missing = wanted.filter((n) => !sprites[n]),
