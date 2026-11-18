@@ -179,7 +179,7 @@ const FEATURES = {
     Fx(b4, 16, 22),
     Fx(c9, 47, 9),
     Fx(b4b, 17, 9),
-    Fx(c10b, 33, 7),
+    Fx(c10b, 32, 10),
   ])(sq('forest')),
   jungle: (([p10, f45, f5, p9, f35, f4, p9b]) => [
     Fx(p10, 22, 16),
@@ -188,7 +188,7 @@ const FEATURES = {
     Fx(p9, 48, 23),
     Fx(f35, 16, 23),
     Fx(f4, 47, 9),
-    Fx(p9b, 33, 7),
+    Fx(p9b, 34, 12),
   ])(sq('jungle')),
   hills: (([big, left, top, s1, s2]) => [
     Fx(big, 32, 24),

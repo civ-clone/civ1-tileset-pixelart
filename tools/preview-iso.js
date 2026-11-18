@@ -103,7 +103,7 @@ both.over(a, 0, 0);
 both.over(b, a.w + 16, 0);
 png(both, Number(scale), file);
 // The isolated and fully joined sprites of each terrain, side by side, for a closer look.
-const names = ['grassland', 'plains', 'desert', 'forest', 'jungle', 'hills', 'mountains', 'swamp', 'tundra'],
+const names = ['grassland', 'plains', 'desert', 'forest', 'jungle', 'hills', 'mountains', 'swamp', 'tundra', 'arctic'],
   sheet = new Spr(names.length * (W + 4), 2 * (H + 4));
 names.forEach((n, i) => {
   sheet.over(T[`terrain/${n}/isolated`], i * (W + 4), 0);
