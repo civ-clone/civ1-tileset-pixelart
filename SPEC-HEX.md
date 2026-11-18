@@ -15,6 +15,10 @@ again for a hexagon.
   so neighbouring tiles meet with no gap and no pixel drawn twice. Everything outside them is transparent.
 - **Textures:** they repeat on the grid's lattice, every 32px across and every 27px down with a 16px shift, so a
   sprite meets copies of itself, and its terrain's other join variants, with no seam on any of its six edges.
+  - A pattern that repeats every few pixels fits the lattice: it repeats every 4px (or 8px, 16px) across and every
+    3px (or 9px, 27px) down. Dithers use a 4 × 3 table, and glints on water keep to their own 4 × 3 cells.
+  - A 1px checker can't fit, since the 27px row step is odd, so none is used where tiles meet. (The fort's palisade,
+    which is wholly inside its hex, alternates its stakes.)
 - **Neighbours:** the six are named as the engine names them, clockwise from the top right: `ne`, `e`, `se`, `sw`,
   `w`, `nw`. A sprite for some of them names them in that order, joined by `-`: `forest_ne-e-sw`.
 - **Colours:** the player colour keys, outline and lighting are the square pack's.
@@ -25,6 +29,8 @@ again for a hexagon.
   is the same terrain.
 - **Edges:** along an edge whose neighbour differs, the terrain stops in a ragged fringe at most 8px deep, where the
   land base shows through. The grounds are the square pack's, in its colours.
+  - The fringe's depth is set by the point of the edge it is beside, and near a corner by the corner itself.
+  - So where two joined tiles both stop at a third, their fringes meet at the same depth, with no notch.
 - **Desert and plains:** their patterns are fitted to the lattice. The desert's dune ripples are 9px apart, so a row is
   three of them. The plains' wheat strokes each keep to their own 4 × 3 cell.
 - **Features:** these are the square pack's drawings (peaks, mounds, trees, palms, reeds, rocks, cacti, ice). They sit
@@ -60,13 +66,17 @@ again for a hexagon.
   - a road is a packed-dirt track from the middle to the middle of that edge;
   - a railroad is two steel rails on wooden sleepers, spaced every 4px counted back from the edge, so neighbouring
     tiles' sleepers line up.
-- **fog_{edge}:** a black ordered-dither fade in from that edge, about 7–12px deep.
+- **fog_{edge}:** a black fade in from that edge, about 7–12px deep, dithered with the lattice's 4 × 3 table. Its depth
+  meets the neighbouring tiles' at each corner, as a fringe's does.
 - **fort:** an earth bank and a stake palisade just inside the hexagon's edge, with a gate at the bottom and an open
   centre.
 - **fortify:** a crenellated stone wall about 4px thick round the inside of a unit's badge.
-- **city:** the square pack's city on the middle of the hex, its front wall in stone. `city_rim` is a 2.5px rim inside
-  the hexagon's edge in the two player colour keys, which the game swaps for the owner's colours and draws over the
-  city.
+- **city:** drawn for the hexagon, with the square pack's buildings. The game draws `city_rim` over it.
+  - At the back are a temple with a house and a keep either side, and two more houses stand at the sides.
+  - A stone wall runs along the two lower edges, with a tower at each end and a gatehouse at the bottom corner.
+  - The middle is left open for the size number.
+  - All of it is inside `city_rim`, a 2.5px rim inside the hexagon's edge in the two player colour keys, which the game
+    swaps for the owner's colours.
 
 ## Units
 

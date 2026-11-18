@@ -108,6 +108,22 @@ const lhash = (x, y, seed) => {
   const [a, b] = canon(x, y);
   return hash(a, b, seed);
 };
+// An ordered dither on the lattice: a 4 × 3 threshold table, which repeats on it exactly (4 divides the 32px step
+//  and the 16px shift, 3 divides the 27px row). A checker can't: the row's odd 27px step would flip it. In [0, 1).
+const DITHER = [0, 6, 4, 10, 5, 11, 1, 7, 8, 2, 9, 3];
+const dither = (x, y) => {
+  const [xr, yr] = canon(x, y);
+  return DITHER[(yr % 3) * 4 + (xr % 4)] / 12;
+};
+// A glint on water: in about a third of the lattice's 4 × 3 cells, a stroke 2px long, so it is never cut at an edge.
+const glint = (x, y, seed) => {
+  const [xr, yr] = canon(x, y),
+    cx = Math.floor(xr / 4),
+    cy = Math.floor(yr / 3);
+  if (hash(cx, cy, seed) <= 0.65 || yr - cy * 3 !== Math.floor(hash(cx, cy, seed + 1) * 3)) return false;
+  const lx = xr - cx * 4 - Math.floor(hash(cx, cy, seed + 2) * 3);
+  return lx === 0 || lx === 1;
+};
 // Coarse noise about 8px across, finer noise about 4px across, and a speckle.
 const lfbm = (x, y, seed) =>
   lnoise(x, y, 4, 3, seed) * 0.55 + lnoise(x, y, 8, 6, seed + 7) * 0.3 + lhash(x, y, seed + 13) * 0.15;
@@ -228,7 +244,20 @@ const FEATURES = {
 const OUTLINES = Object.fromEntries(Object.entries(defs).map(([k, d]) => [k, d.outline ?? OUTLINE]));
 const SEEDS = Object.fromEntries(Object.entries(defs).map(([k, d]) => [k, d.seed]));
 
-// ---------- coverage ----------
+// ---------- edges ----------
+// Noise for something cut back from the edge `d` (a fringe, a fade), in [0, 1]: taken at the point of the edge beside
+//  the pixel, which is the same point in the tile across that edge. Within 1px of a corner it is the noise at the corner
+//  itself, blending into the edge's own over the next 2px, so where two neighbouring tiles both cut back from a third,
+//  they meet at the same depth on their shared edge, with no notch. (Their pixels by the shared edge are all beside the
+//  corner, or past it.)
+const edgeNoise = (x, y, d, seed) => {
+  const { along, len } = edgeDist(x, y, d),
+    [[ax, ay], [bx, by]] = EDGE[d],
+    at = (a) => lnoise(ax + ((bx - ax) * a) / len - 0.5, ay + ((by - ay) * a) / len - 0.5, 16, 12, seed),
+    end = along < len / 2 ? 0 : len,
+    w = smoothstep(Math.max(0, Math.min(1, (Math.min(along, len - along) - 1) / 2)));
+  return at(end) + (at(Math.max(0, Math.min(len, along))) - at(end)) * w;
+};
 // Where a terrain's ground is drawn: the hex, less a ragged fringe along every edge whose neighbour is not the same
 //  terrain, where the land base shows through. The fringe (soft band included) is at most 8px deep.
 const coverage = (mask, seed) => {
@@ -239,8 +268,8 @@ const coverage = (mask, seed) => {
       let v = 1;
       for (const d of DIRS) {
         if (mask.includes(d)) continue;
-        const { dist, along } = edgeDist(x, y, d),
-          depth = 2.5 + lnoise(along * 2, DIRS.indexOf(d) * 9, 8, 3, seed) * 4;
+        const { dist } = edgeDist(x, y, d),
+          depth = 2.5 + edgeNoise(x, y, d, seed) * 4;
         if (dist < depth) v = 0;
         else if (dist < depth + 1.5 && v) v = 2;
       }
@@ -365,15 +394,7 @@ const river = (mask) => {
           [0, 1],
           [0, -1],
         ].some(([dx, dy]) => water.in(x + dx, y + dy) && !water.get(x + dx, y + dy));
-        out.set(
-          x,
-          y,
-          edge
-            ? '#2c54a4'
-            : (x + 2 * y) % 7 === 0 && lhash(x, y, 201) > 0.4
-            ? '#a8c8f4'
-            : pick(lnoise(x, y, 8, 6, 200), WATER)
-        );
+        out.set(x, y, edge ? '#2c54a4' : glint(x, y, 201) ? '#a8c8f4' : pick(lnoise(x, y, 8, 6, 200), WATER));
       } else if (
         [
           [1, 0],
@@ -425,7 +446,7 @@ const coastWedge = (d, bits) => {
       else if (dist < 2.2 + n) t.set(x, y, '#b8a46a');
       else if (dist < 3.2 + n) t.set(x, y, lhash(x, y, 62) > 0.45 ? '#e8f0fc' : '#7ea4e0');
       else if (dist < 6.5 + n * 1.5)
-        t.set(x, y, (x + y) % 2 && dist > 5 + n ? null : lhash(x, y, 63) > 0.92 ? '#8cb0e8' : '#3e74c4');
+        t.set(x, y, dither(x, y) >= 0.5 && dist > 5 + n ? null : lhash(x, y, 63) > 0.92 ? '#8cb0e8' : '#3e74c4');
     }
   return t;
 };
@@ -452,7 +473,7 @@ const riverMouth = (d) => {
         w = 3 + along * 0.55 + lnoise(x, y, 8, 6, 70) * 1.5;
       if (along < 0 || along > 12 || Math.abs(across) > w) continue;
       if (Math.abs(across) > w - 1.4 && along < 8) t.set(x, y, '#e0cc8a');
-      else t.set(x, y, along > 9 && (x + y) % 2 ? null : (x * 3 + y) % 7 === 0 ? '#a8c8f4' : '#4a80d4');
+      else t.set(x, y, along > 9 && dither(x, y) >= 0.5 ? null : glint(x, y, 71) ? '#a8c8f4' : '#4a80d4');
     }
   return t;
 };
@@ -471,11 +492,14 @@ module.exports = {
   owns,
   whose,
   edgeDist,
+  edgeNoise,
   around,
   lnoise,
   lhash,
   lfbm,
   canon,
+  dither,
+  glint,
   pick,
   sprites,
 };

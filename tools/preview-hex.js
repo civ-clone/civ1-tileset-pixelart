@@ -112,8 +112,8 @@ const player = (s, light, dark) => recolour(s, light, dark);
 const at2 = (s, c, r) => out.over(s, c * W + (r & 1) * (W / 2), r * ROW);
 at2(T['map/city'], 7, 5);
 at2(player(T['map/city_rim'], '#e04040', '#801818'), 7, 5);
-at2(T['map/city'], 12, 7);
-at2(player(T['map/city_rim'], '#4060e0', '#182080'), 12, 7);
+at2(T['map/city'], 11, 7);
+at2(player(T['map/city_rim'], '#4060e0', '#182080'), 11, 7);
 for (const [u, c, r, light, dark] of [
   ['settlers', 5, 6, '#e04040', '#801818'],
   ['warrior', 8, 6, '#e04040', '#801818'],
