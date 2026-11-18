@@ -146,11 +146,13 @@ for (const { dir, grid, sprites, lnoise, dither, glint, tall, tallSprites, stack
     for (let y = 0; y < s.h; y++) for (let x = 0; x < W; x++) if (s.get(x, y) && !allowed(x, y)) outside++;
     if (outside) geometry.push(`${name}: ${outside} pixels outside its tile`);
     // A tall unit is drawn again behind a stack, `stack` px across and down, with its fortified wall: the copy keeps
-    //  to the same rule.
+    //  to the same rule. The wall, which is on the ground, is held to its tile's own pixels: its copy may not reach
+    //  past the diamond's back edges either.
     if (stack && up && (name.startsWith('units/') || name === 'map/fortify')) {
+      const fits = name === 'map/fortify' ? (x, y) => owns(x, y - up) : (x, y) => allowed(x, y);
       let spilt = 0;
       for (let y = 0; y < s.h; y++)
-        for (let x = 0; x < W; x++) if (s.get(x, y) && !allowed(x + stack.x, y + stack.y)) spilt++;
+        for (let x = 0; x < W; x++) if (s.get(x, y) && !fits(x + stack.x, y + stack.y)) spilt++;
       if (spilt) geometry.push(`${name}: ${spilt} pixels of a stack's copy outside its tile`);
     }
   }
