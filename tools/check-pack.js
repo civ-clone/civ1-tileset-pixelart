@@ -128,6 +128,36 @@ for (const [name, f] of [
         break;
       }
 
+// The patterns that repeat every few pixels keep to their own small periods, so the lattice's period, which they divide,
+//  never cuts one: the dither every 4px across and 3px down, and each glint inside its own 4 × 3 cell, which starts at
+//  a multiple of 4 across and 3 down in any tile's coordinates.
+for (let y = -ROW; y < 2 * ROW; y++)
+  for (let x = -W; x < 2 * W; x++)
+    if (hex.dither(x, y) !== hex.dither(x + 4, y) || hex.dither(x, y) !== hex.dither(x, y + 3)) {
+      geometry.push(`dither: does not repeat every 4px across and 3px down, at (${x}, ${y})`);
+      y = 2 * ROW;
+      break;
+    }
+for (let cy = -ROW; cy < 2 * ROW; cy += 3)
+  for (let cx = -W; cx < 2 * W; cx += 4) {
+    const lit = [];
+    for (let y = cy; y < cy + 3; y++) for (let x = cx; x < cx + 4; x++) if (hex.glint(x, y, 201)) lit.push([x, y]);
+    if (lit.length && !(lit.length === 2 && lit[0][1] === lit[1][1] && lit[1][0] - lit[0][0] === 1)) {
+      geometry.push(`glint: the cell at (${cx}, ${cy}) does not hold one whole 2px stroke`);
+      cy = 2 * ROW;
+      break;
+    }
+  }
+
+// The city keeps inside its rim, which the game draws over it.
+{
+  const city = sprites['map/city'],
+    rim = sprites['map/city_rim'];
+  let under = 0;
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (city.get(x, y) && rim.get(x, y)) under++;
+  if (under) geometry.push(`map/city: ${under} pixels under map/city_rim`);
+}
+
 if (geometry.length) {
   console.error(`pack-hex's geometry is wrong:\n  ${geometry.join('\n  ')}`);
   failed = true;

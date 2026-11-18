@@ -155,7 +155,7 @@ out['map/city'] = (() => {
     s.over(t);
   };
   // A house at the back left.
-  house(5, 8, 6, 4, R.roof2);
+  house(6, 9, 6, 4, R.roof2);
   // The temple, centre back.
   const t = new Spr(W, H);
   t.poly(
@@ -174,28 +174,28 @@ out['map/city'] = (() => {
   t.outline();
   s.over(t);
   // A keep at the back right.
-  tower(22, 8, 5, 9);
+  tower(22, 10, 4, 8);
   // Houses either side.
-  house(3, 13, 6, 4, R.roof);
-  house(23, 13, 6, 4, R.roof);
+  house(4, 13, 6, 4, R.roof);
+  house(22, 13, 6, 4, R.roof);
   // The wall, inside the rim along the two lower edges.
   const wall = new Spr(W, H);
   for (let y = 0; y < H; y++)
     for (let x = 0; x < W; x++) {
       const d = Math.min(edgeDist(x, y, 'se').dist, edgeDist(x, y, 'sw').dist);
-      if (y < 21 || inside(x, y) < 3 || d >= 7) continue;
+      if (y < 21 || inside(x, y) < 3.5 || d >= 7.5) continue;
       const along = x < 16 ? x : 31 - x;
-      wall.set(x, y, d < 4 ? R.stone.d : d < 6 ? R.stone.m : along % 3 ? R.stone.l : null);
+      wall.set(x, y, d < 4.5 ? R.stone.d : d < 6.5 ? R.stone.m : along % 3 ? R.stone.l : null);
     }
   wall.outline();
   s.over(wall);
   // A tower at each end of the wall, and a gatehouse at the bottom corner.
-  tower(3, 20, 4, 7);
-  tower(25, 20, 4, 7);
+  tower(3, 19, 4, 6);
+  tower(25, 19, 4, 6);
   const g = new Spr(W, H);
-  g.rect(13, 25, 6, 7, R.stone.m).bevel(R.stone);
-  for (let i = 13; i < 19; i += 2) g.set(i, 24, R.stone.l);
-  g.rect(15, 28, 2, 4, R.wood.m).set(15, 28, R.wood.l).set(16, 29, R.wood.d).set(16, 30, R.wood.d);
+  g.rect(13, 24, 6, 6, R.stone.m).bevel(R.stone);
+  for (let i = 13; i < 19; i += 2) g.set(i, 23, R.stone.l);
+  g.rect(15, 26, 2, 4, R.wood.m).set(15, 26, R.wood.l).set(16, 27, R.wood.d).set(16, 28, R.wood.d);
   g.outline();
   s.over(g);
   // Shadows cast down and right onto open ground.

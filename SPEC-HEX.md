@@ -17,7 +17,8 @@ again for a hexagon.
   sprite meets copies of itself, and its terrain's other join variants, with no seam on any of its six edges.
   - A pattern that repeats every few pixels fits the lattice: it repeats every 4px (or 8px, 16px) across and every
     3px (or 9px, 27px) down. Dithers use a 4 × 3 table, and glints on water keep to their own 4 × 3 cells.
-  - A 1px checker can't fit, since the 27px row step is odd, so none is used.
+  - A 1px checker can't fit, since the 27px row step is odd, so none is used where tiles meet. (The fort's palisade,
+    which is wholly inside its hex, alternates its stakes.)
 - **Neighbours:** the six are named as the engine names them, clockwise from the top right: `ne`, `e`, `se`, `sw`,
   `w`, `nw`. A sprite for some of them names them in that order, joined by `-`: `forest_ne-e-sw`.
 - **Colours:** the player colour keys, outline and lighting are the square pack's.

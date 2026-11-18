@@ -77,8 +77,8 @@ npm run previews
 compression changes with the zlib Node ships. It also checks the hexagonal pack's geometry:
 
 - its tiles, put down in odd-r rows, cover every pixel exactly once;
-- every sprite drawn on the map's tiles keeps to its own tile's pixels;
-- its patterns repeat on the lattice.
+- every sprite drawn on the map's tiles keeps to its own tile's pixels, and the city to the inside of its rim;
+- its patterns repeat on the lattice, and the dither and glints keep to their own 4 × 3 periods and cells.
 
 ## Licence
 

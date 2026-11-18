@@ -246,15 +246,16 @@ const SEEDS = Object.fromEntries(Object.entries(defs).map(([k, d]) => [k, d.seed
 
 // ---------- edges ----------
 // Noise for something cut back from the edge `d` (a fringe, a fade), in [0, 1]: taken at the point of the edge beside
-//  the pixel, which is the same point in the tile across that edge. Within 4px of a corner it is the noise at the corner
-//  itself, so where two neighbouring tiles both cut back from a third, they meet at the same depth on their shared
-//  edge, with no notch.
+//  the pixel, which is the same point in the tile across that edge. Within 1px of a corner it is the noise at the corner
+//  itself, blending into the edge's own over the next 2px, so where two neighbouring tiles both cut back from a third,
+//  they meet at the same depth on their shared edge, with no notch. (Their pixels by the shared edge are all beside the
+//  corner, or past it.)
 const edgeNoise = (x, y, d, seed) => {
   const { along, len } = edgeDist(x, y, d),
     [[ax, ay], [bx, by]] = EDGE[d],
     at = (a) => lnoise(ax + ((bx - ax) * a) / len - 0.5, ay + ((by - ay) * a) / len - 0.5, 16, 12, seed),
     end = along < len / 2 ? 0 : len,
-    w = smoothstep(Math.max(0, Math.min(1, (Math.min(along, len - along) - 4) / 4)));
+    w = smoothstep(Math.max(0, Math.min(1, (Math.min(along, len - along) - 1) / 2)));
   return at(end) + (at(Math.max(0, Math.min(len, along))) - at(end)) * w;
 };
 // Where a terrain's ground is drawn: the hex, less a ragged fringe along every edge whose neighbour is not the same
