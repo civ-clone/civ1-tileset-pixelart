@@ -66,6 +66,8 @@ out['improvements/pollution'] = onIso(imp.pollution, 16, -1);
 
 // Roads and railroads: from the middle of the diamond to the middle of each edge, or to each corner, where the
 //  neighbour's carries on. A railroad's sleepers are every 4px counted back from the far end, so both tiles' line up.
+//  Toward the e and w corners the diamond pinches to a point (no tile owns its very tip), so the rails close in with
+//  it, staying a pixel inside, and meet the neighbour's at the corner.
 for (const d of ALL) {
   const [mx, my] = TOWARDS[d],
     [cx, cy] = CENTRE,
@@ -87,8 +89,12 @@ for (const d of ALL) {
     if (Math.round(back) % 4 === 2 && Math.abs(back - Math.round(back)) < 0.26)
       for (let k = -3; k <= 3; k++) rail.set(cx + ux * (i / 2) - uy * k, cy + uy * (i / 2) + ux * k, R.wood.m);
   }
-  for (let i = 0; i <= steps * 2; i++)
-    for (const k of [-2, 2]) rail.set(cx + (ux * i) / 2 - uy * k, cy + (uy * i) / 2 + ux * k, '#c4ccd4');
+  for (let i = 0; i <= steps * 2; i++) {
+    const x = cx + (ux * i) / 2,
+      y = cy + (uy * i) / 2,
+      gauge = Math.max(0, Math.min(2, inside(x - 0.5, y - 0.5) - 1));
+    for (const k of [-gauge, gauge]) rail.set(x - uy * k, y + ux * k, '#c4ccd4');
+  }
   out[`improvements/road_${d}`] = onIso(road);
   out[`improvements/railroad_${d}`] = onIso(rail);
 }
@@ -127,14 +133,21 @@ out['map/fort'] = (() => {
     }
   return t;
 })();
-// The fortified wall, over a fortified unit: a crenellated stone wall about 4px thick round the inside of the diamond,
-//  on a unit's tall canvas.
+// The fortified wall, over a fortified unit: a crenellated stone wall about 4px thick inside the diamond's two front
+//  edges, on a unit's tall canvas. It is drawn over the unit, so it runs in front of the figure alone, and stops 3px
+//  short of the back edges, so a stack's copy, drawn 2px up and left, stays inside the diamond.
+const frontWall = (x, y, from = 0.5) => {
+  const ty = y - TALL,
+    d = Math.min(edgeDist(x, ty, 'se').dist, edgeDist(x, ty, 'sw').dist),
+    back = Math.min(edgeDist(x, ty, 'ne').dist, edgeDist(x, ty, 'nw').dist);
+  return y >= TALL && owns(x, ty) && back >= 3 && d >= from && d < from + 4 ? d - from + 0.5 : -1;
+};
 out['map/fortify'] = (() => {
   const t = new Spr(W, TH);
   for (let y = 0; y < TH; y++)
     for (let x = 0; x < W; x++) {
-      const d = insideTall(x, y);
-      if (d < 0.5 || d >= 4.5) continue;
+      const d = frontWall(x, y);
+      if (d < 0) continue;
       // Merlons on the outer half, every few pixels round.
       if (d < 1.8 && Math.floor(Math.atan2((y - TALL + 0.5 - 16) * 2, x + 0.5 - 32) * 10) % 2 === 0) continue;
       t.set(x, y, d < 1.8 ? R.stone.l : d > 3.6 ? R.stone.d : R.stone.m);
@@ -144,9 +157,9 @@ out['map/fortify'] = (() => {
 
 // ---------- city ----------
 // In the square pack's style and with its buildings, on a tall canvas: a temple at the back with a keep and houses
-//  round it, a wall along the two front edges with a tower at each end and a gatehouse at the front corner, and the
-//  middle left open for the size number. The owner's rim (`map/city_rim`) runs round the diamond's edge and behind the
-//  buildings that rise over it.
+//  round it, and the middle and front left open for the size number. It has no walls of its own, so a walled city
+//  (`map/walls`) looks it. The owner's rim (`map/city_rim`) runs round the diamond's edge and behind the buildings that
+//  rise over it.
 out['map/city'] = (() => {
   const s = new Spr(W, TH),
     Y = TALL;
@@ -202,30 +215,6 @@ out['map/city'] = (() => {
   tower(48, Y + 1, 5, 9);
   house(9, Y + 7, 6, 4, R.roof);
   house(49, Y + 9, 6, 4, R.roof2);
-  // The wall, along the two front edges.
-  const wall = new Spr(W, TH);
-  for (let y = 0; y < TH; y++)
-    for (let x = 0; x < W; x++) {
-      const din = insideTall(x, y);
-      if (din < 3 || y - Y < 17) continue;
-      const d = Math.min(edgeDist(x, y - Y, 'se').dist, edgeDist(x, y - Y, 'sw').dist);
-      if (d >= 6.5) continue;
-      wall.set(x, y, d < 4 ? R.stone.d : d < 5.5 ? R.stone.m : x % 3 ? R.stone.l : null);
-    }
-  wall.outline();
-  s.over(wall);
-  // A tower at each end of the wall, and a gatehouse at the front corner.
-  tower(10, Y + 14, 4, 6);
-  tower(50, Y + 14, 4, 6);
-  const g = new Spr(W, TH);
-  g.rect(29, Y + 22, 6, 6, R.stone.m).bevel(R.stone);
-  for (let i = 29; i < 35; i += 2) g.set(i, Y + 21, R.stone.l);
-  g.rect(31, Y + 24, 2, 4, R.wood.m)
-    .set(31, Y + 24, R.wood.l)
-    .set(32, Y + 25, R.wood.d)
-    .set(32, Y + 26, R.wood.d);
-  g.outline();
-  s.over(g);
   // Shadows cast down and right onto open ground.
   const sh = new Spr(W, TH);
   for (let y = 0; y < TH; y++)
@@ -248,14 +237,28 @@ out['map/city_rim'] = (() => {
   return t;
 })();
 
-// A walled city's walls: the fortified wall, tile-sized (the game draws them in the tile, over the city), and left out
-//  wherever a building stands over them, so they run behind the buildings as the rim does.
+// A walled city's walls: tile-sized (the game draws them in the tile, over the city and under its rim), a crenellated
+//  stone wall all round just inside the rim, with a gatehouse at the front corner, and left out wherever a building
+//  stands over it, so it runs behind the buildings as the rim does.
 out['map/walls'] = (() => {
   const t = new Spr(W, H),
-    wall = out['map/fortify'],
     city = out['map/city'];
   for (let y = 0; y < H; y++)
-    for (let x = 0; x < W; x++) if (!city.get(x, y + TALL)) t.set(x, y, wall.get(x, y + TALL));
+    for (let x = 0; x < W; x++) {
+      if (!owns(x, y) || city.get(x, y + TALL)) continue;
+      const d = inside(x, y) - 2.5;
+      if (d < 0 || d >= 3.5) continue;
+      if (d < 1.2 && Math.floor(Math.atan2((y + 0.5 - 16) * 2, x + 0.5 - 32) * 10) % 2 === 0) continue;
+      t.set(x, y, d < 1.2 ? R.stone.l : d > 2.6 ? R.stone.d : R.stone.m);
+    }
+  // The gatehouse, at the front corner.
+  const g = new Spr(W, H);
+  g.rect(29, 23, 6, 5, R.stone.m).bevel(R.stone);
+  for (let i = 29; i < 35; i += 2) g.set(i, 22, R.stone.l);
+  g.rect(31, 25, 2, 3, R.wood.m).set(31, 25, R.wood.l).set(32, 26, R.wood.d);
+  g.outline();
+  for (let y = 0; y < H; y++)
+    for (let x = 0; x < W; x++) if (g.get(x, y) && inside(x, y) >= 2.5) t.set(x, y, g.get(x, y));
   return t;
 })();
 

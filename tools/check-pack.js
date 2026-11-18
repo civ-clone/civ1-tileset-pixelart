@@ -84,6 +84,7 @@ const GRIDS = [
     glint: { lit: 201, cell: [4, 3] },
     tall: 0,
     tallSprites: [],
+    stack: null,
   },
   {
     dir: 'pack-iso',
@@ -92,12 +93,14 @@ const GRIDS = [
     lnoise: [32, 8],
     dither: [4, 4],
     glint: { lit: 201, cell: [4, 4] },
-    tall: 16,
+    // As far as the descriptor anchors units and cities above their tile.
+    tall: -require('../tileset-iso.json').units.anchor.y,
     tallSprites: ['map/city', 'map/city_rim', 'map/fortify'],
+    stack: require('../tileset-iso.json').units.stackOffset,
   },
 ];
 
-for (const { dir, grid, sprites, lnoise, dither, glint, tall, tallSprites } of GRIDS) {
+for (const { dir, grid, sprites, lnoise, dither, glint, tall, tallSprites, stack } of GRIDS) {
   const { W, H, ROW, owns } = grid,
     // Odd rows are shifted half a tile across on both grids.
     shift = W / 2,
@@ -138,10 +141,18 @@ for (const { dir, grid, sprites, lnoise, dither, glint, tall, tallSprites } of G
       geometry.push(`${name}: ${s.w} × ${s.h}, not ${W} × ${H + up}`);
       continue;
     }
+    const allowed = (x, y) => owns(x, y - up) || (up && y - up < H / 2 && x >= 0 && x < W);
     let outside = 0;
-    for (let y = 0; y < s.h; y++)
-      for (let x = 0; x < W; x++) if (s.get(x, y) && !owns(x, y - up) && !(up && y - up < H / 2)) outside++;
+    for (let y = 0; y < s.h; y++) for (let x = 0; x < W; x++) if (s.get(x, y) && !allowed(x, y)) outside++;
     if (outside) geometry.push(`${name}: ${outside} pixels outside its tile`);
+    // A tall unit is drawn again behind a stack, `stack` px across and down, with its fortified wall: the copy keeps
+    //  to the same rule.
+    if (stack && up && (name.startsWith('units/') || name === 'map/fortify')) {
+      let spilt = 0;
+      for (let y = 0; y < s.h; y++)
+        for (let x = 0; x < W; x++) if (s.get(x, y) && !allowed(x + stack.x, y + stack.y)) spilt++;
+      if (spilt) geometry.push(`${name}: ${spilt} pixels of a stack's copy outside its tile`);
+    }
   }
 
   // The patterns repeat on the lattice: a tile across, and a row down with half a tile's shift.

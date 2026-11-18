@@ -84,12 +84,15 @@ for (let r = 0; r < rows; r++)
 // Roads, with a railroad on part of them.
 const ROAD = ['5,6', '6,6', '6,7', '7,8', '8,8', '9,8', '9,7', '10,7', '10,6'],
   RAIL = new Set(['9,8', '9,7', '10,7', '10,6']),
+  CITIES = new Set(['8,8', '10,6']),
   roads = new Set(ROAD);
 for (const key of ROAD) {
   const [c, r] = key.split(',').map(Number);
   for (const d of ALL) {
     const n = step(c, r, d).join(',');
-    if (roads.has(n)) put(`improvements/${RAIL.has(key) && RAIL.has(n) ? 'railroad' : 'road'}_${d}`, c, r);
+    // As the renderer does, a railroad runs on into a city beside it.
+    if (roads.has(n))
+      put(`improvements/${RAIL.has(key) && (RAIL.has(n) || CITIES.has(n)) ? 'railroad' : 'road'}_${d}`, c, r);
   }
 }
 for (const [name, c, r] of [
@@ -116,13 +119,14 @@ for (const [name, c, r] of [
   out.over(T['terrain/shield'], x + 27, y + 10);
 }
 
-// Cities, then units, over the landscape, each row in front of the one above.
+// Cities, then units, over the landscape, each row in front of the one above. A city is drawn as the renderer draws it:
+//  the city, its walls in the tile, then its rim.
 const RED = ['#e04040', '#801818'],
   BLUE = ['#4060e0', '#182080'],
   player = (s, [light, dark]) => recolour(s, light, dark);
 const tall = [
   [8, 8, () => [T['map/city'], player(T['map/city_rim'], RED)]],
-  [10, 6, () => [T['map/city'], player(T['map/city_rim'], BLUE), [T['map/walls'], 0]]],
+  [10, 6, () => [T['map/city'], [T['map/walls'], 0], player(T['map/city_rim'], BLUE)]],
   [7, 9, () => [player(T['units/settlers'], RED)]],
   [6, 6, () => [player(T['units/warrior'], RED)]],
   [10, 5, () => [player(T['units/knight'], BLUE)]],
