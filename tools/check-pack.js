@@ -1,5 +1,7 @@
 // Fails unless the committed packs are what the code draws: builds each afresh and compares every sprite's pixels (not
-//  its bytes, which change with the zlib Node ships) and the descriptor. `node tools/check-pack.js`
+//  its bytes, which change with the zlib Node ships) and the descriptor. Then checks the hexagonal pack's geometry: that
+//  its tiles cover the plane exactly once, that every sprite the shape of a tile keeps to its own pixels, and that its
+//  patterns repeat on the lattice. `node tools/check-pack.js`
 const fs = require('fs'),
   os = require('os'),
   path = require('path'),
@@ -67,5 +69,68 @@ for (const [dir, manifest] of PACKS) {
     failed = true;
   } else console.log(`${dir} is what the code draws: ${a.length} files.`);
 }
+
+// ---------- the hexagonal pack's geometry ----------
+const hex = require('../src/hex'),
+  sprites = require('../src/hex-map'),
+  { W, H, ROW, owns } = hex,
+  geometry = [];
+
+// A full tile, as shipped, put down in odd-r rows covers every pixel away from the map's border exactly once.
+for (const name of ['terrain/land', 'terrain/ocean']) {
+  const tile = sprites[name],
+    cols = 6,
+    rows = 6,
+    w = cols * W + W / 2,
+    h = rows * ROW + H - ROW,
+    count = new Uint8Array(w * h);
+  for (let r = 0; r < rows; r++)
+    for (let c = 0; c < cols; c++)
+      for (let y = 0; y < H; y++)
+        for (let x = 0; x < W; x++) if (tile.get(x, y)) count[(r * ROW + y) * w + c * W + (r & 1) * (W / 2) + x]++;
+  let bad = 0;
+  for (let y = H; y < h - H; y++) for (let x = W; x < w - W; x++) if (count[y * w + x] !== 1) bad++;
+  if (bad) geometry.push(`${name}: ${bad} pixels of a tiled map are covered other than once`);
+  for (let y = 0; y < H; y++)
+    for (let x = 0; x < W; x++)
+      if (!!tile.get(x, y) !== owns(x, y)) {
+        geometry.push(`${name}: does not fill exactly the pixels its tile owns`);
+        y = H;
+        break;
+      }
+}
+
+// Every sprite drawn on the map's tiles (terrain, improvements, map and units, but not the shield, which the
+//  descriptor places) is the tile's size and draws only the pixels its tile owns, so it can't draw over a neighbour.
+for (const [name, s] of Object.entries(sprites)) {
+  if (!/^(terrain|improvements|map|units)\//.test(name) || name === 'terrain/shield') continue;
+  if (s.w !== W || s.h !== H) {
+    geometry.push(`${name}: ${s.w} × ${s.h}, not the tile's ${W} × ${H}`);
+    continue;
+  }
+  let outside = 0;
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (s.get(x, y) && !owns(x, y)) outside++;
+  if (outside) geometry.push(`${name}: ${outside} pixels outside its tile`);
+}
+
+// The patterns repeat on the lattice: 32px across, and 27px down with a 16px shift.
+for (const [name, f] of [
+  ['lhash', (x, y) => hex.lhash(x, y, 1)],
+  ['lnoise', (x, y) => hex.lnoise(x, y, 16, 12, 1).toFixed(9)],
+  ['dither', hex.dither],
+  ['glint', (x, y) => hex.glint(x, y, 201)],
+])
+  for (let y = -ROW; y < 2 * ROW; y++)
+    for (let x = -W; x < 2 * W; x++)
+      if (f(x, y) !== f(x + W, y) || f(x, y) !== f(x + W / 2, y + ROW)) {
+        geometry.push(`${name}: does not repeat on the lattice at (${x}, ${y})`);
+        y = 2 * ROW;
+        break;
+      }
+
+if (geometry.length) {
+  console.error(`pack-hex's geometry is wrong:\n  ${geometry.join('\n  ')}`);
+  failed = true;
+} else console.log("pack-hex's tiles cover the map once, its sprites keep to their tiles, and its patterns repeat.");
 
 process.exit(failed ? 1 : 0);

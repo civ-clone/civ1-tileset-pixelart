@@ -74,7 +74,11 @@ npm run previews
 ```
 
 `npm run check` fails unless the committed packs are what the code draws. It compares pixels, not bytes, as PNG
-compression changes with the zlib Node ships.
+compression changes with the zlib Node ships. It also checks the hexagonal pack's geometry:
+
+- its tiles, put down in odd-r rows, cover every pixel exactly once;
+- every sprite drawn on the map's tiles keeps to its own tile's pixels;
+- its patterns repeat on the lattice.
 
 ## Licence
 

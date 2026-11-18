@@ -5,7 +5,7 @@ const { specials, imp } = require('./terrain');
 const misc = require('./misc');
 const units = require('./units');
 const combat = require('./combat');
-const { W, H, DIRS, MID, CENTRE, owns, edgeDist, lhash, lnoise, sprites: terrain } = require('./hex');
+const { W, H, DIRS, MID, CENTRE, owns, edgeDist, edgeNoise, lhash, dither, sprites: terrain } = require('./hex');
 
 // A square-pack sprite moved by (dx, dy) onto a hex-sized canvas, keeping only the pixels the hex owns.
 const onHex = (s, dx = 0, dy = 0) => {
@@ -72,15 +72,14 @@ for (const d of DIRS) {
 
 // ---------- fog ----------
 // A black ordered-dither fade in from each edge, about 7–12px deep.
-const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
 for (const d of DIRS) {
   const t = new Spr(W, H);
   for (let y = 0; y < H; y++)
     for (let x = 0; x < W; x++) {
       if (!owns(x, y)) continue;
-      const { dist, along } = edgeDist(x, y, d),
-        depth = 7 + lnoise(along * 2, DIRS.indexOf(d) * 9, 8, 3, 80) * 5;
-      if (BAYER[(y % 4) * 4 + (x % 4)] / 16 < 1 - dist / depth) t.set(x, y, '#000000');
+      const { dist } = edgeDist(x, y, d),
+        depth = 7 + edgeNoise(x, y, d, 80) * 5;
+      if (dither(x, y) < 1 - dist / depth) t.set(x, y, '#000000');
     }
   out[`map/fog_${d}`] = t;
 }
@@ -121,17 +120,90 @@ out['map/fortify'] = (() => {
 })();
 
 // ---------- city ----------
-// The square pack's city, its wall in stone rather than the owner's second colour, on the middle of the hex; the
-//  owner's colours go round it as a rim (`map/city_rim`, its keys swapped for the player's).
+// Drawn for the hexagon, in the square pack's style and with its buildings: a temple at the back with a keep and
+//  houses either side, a stone wall along the two lower edges with a tower at each end and a gatehouse at the bottom
+//  corner, and the middle left open for the size number. All of it is inside the owner's rim (`map/city_rim`, its keys
+//  swapped for the player's), which goes round it.
 out['map/city'] = (() => {
-  const c = misc['map/city'](),
-    t = new Spr(W, H);
-  for (let y = 0; y < c.h; y++)
-    for (let x = 0; x < c.w; x++) {
-      const p = c.get(x, y);
-      if (p) t.set(x + 1, y + 3, p === '#000000' ? R.stone.m : p);
+  const s = new Spr(W, H);
+  const house = (x, y, w, wallH, roof, lit = R.plaster) => {
+    const rh = Math.ceil(w / 2) - 1,
+      b = new Spr(W, H);
+    b.rect(x, y + rh, w, wallH, lit.m).bevel(lit);
+    b.poly(
+      [
+        [x - 1, y + rh + 0.5],
+        [x + w / 2, y - 0.5],
+        [x + w + 1, y + rh + 0.5],
+      ],
+      roof.m
+    );
+    for (let j = y; j <= y + rh; j++)
+      for (let i = x - 1; i <= x + w; i++) if (b.get(i, j) === roof.m && i < x + w / 2 - 0.5) b.set(i, j, roof.l);
+    b.rect(x - 1, y + rh, w + 2, 1, roof.d);
+    b.rect(x + 1, y + rh + wallH - 2, 1, 2, R.wood.d);
+    if (w >= 6) b.rect(x + w - 3, y + rh + 1, 2, 1, R.dark.m);
+    b.outline();
+    s.over(b);
+  };
+  const tower = (x, y, w, h) => {
+    const t = new Spr(W, H);
+    t.rect(x, y + 1, w, h - 1, R.stone.m).bevel(R.stone);
+    for (let i = x; i < x + w; i += 2) t.set(i, y, R.stone.l);
+    t.set(x + Math.floor(w / 2), y + 3, R.dark.d).set(x + Math.floor(w / 2), y + 4, R.dark.d);
+    t.outline();
+    s.over(t);
+  };
+  // A house at the back left.
+  house(5, 8, 6, 4, R.roof2);
+  // The temple, centre back.
+  const t = new Spr(W, H);
+  t.poly(
+    [
+      [10, 8.5],
+      [16, 3.5],
+      [22, 8.5],
+    ],
+    R.stone.l
+  );
+  t.rect(10, 8, 12, 1, R.stone.d);
+  t.rect(11, 9, 10, 6, R.stone.m);
+  for (let x = 11; x <= 20; x += 3) t.rect(x, 9, 1, 6, R.white.h);
+  t.rect(10, 15, 12, 2, R.stone.d).rect(10, 15, 12, 1, R.stone.l);
+  t.set(16, 5, R.stone.h);
+  t.outline();
+  s.over(t);
+  // A keep at the back right.
+  tower(22, 8, 5, 9);
+  // Houses either side.
+  house(3, 13, 6, 4, R.roof);
+  house(23, 13, 6, 4, R.roof);
+  // The wall, inside the rim along the two lower edges.
+  const wall = new Spr(W, H);
+  for (let y = 0; y < H; y++)
+    for (let x = 0; x < W; x++) {
+      const d = Math.min(edgeDist(x, y, 'se').dist, edgeDist(x, y, 'sw').dist);
+      if (y < 21 || inside(x, y) < 3 || d >= 7) continue;
+      const along = x < 16 ? x : 31 - x;
+      wall.set(x, y, d < 4 ? R.stone.d : d < 6 ? R.stone.m : along % 3 ? R.stone.l : null);
     }
-  return onHex(t);
+  wall.outline();
+  s.over(wall);
+  // A tower at each end of the wall, and a gatehouse at the bottom corner.
+  tower(3, 20, 4, 7);
+  tower(25, 20, 4, 7);
+  const g = new Spr(W, H);
+  g.rect(13, 25, 6, 7, R.stone.m).bevel(R.stone);
+  for (let i = 13; i < 19; i += 2) g.set(i, 24, R.stone.l);
+  g.rect(15, 28, 2, 4, R.wood.m).set(15, 28, R.wood.l).set(16, 29, R.wood.d).set(16, 30, R.wood.d);
+  g.outline();
+  s.over(g);
+  // Shadows cast down and right onto open ground.
+  const sh = new Spr(W, H);
+  for (let y = 0; y < H; y++)
+    for (let x = 0; x < W; x++) if (!s.get(x, y) && s.get(x - 1, y - 1) && inside(x, y) >= 2.5) sh.set(x, y, '#2a2620');
+  s.over(sh);
+  return s;
 })();
 out['map/city_rim'] = (() => {
   const t = new Spr(W, H);
