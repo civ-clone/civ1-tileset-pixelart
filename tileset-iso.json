@@ -1,0 +1,579 @@
+{
+  "schema": 1,
+  "kind": "tileset",
+  "id": "iso-pixelart",
+  "name": "Pixel art (isometric)",
+  "grid": "staggered-iso",
+  "tile": {
+    "width": 64,
+    "height": 32
+  },
+  "geometry": {
+    "columnStep": 64,
+    "rowStep": 16,
+    "oddRowShift": 32,
+    "anchor": {
+      "x": 0,
+      "y": 0
+    },
+    "overhang": {
+      "top": 16,
+      "right": 0,
+      "bottom": 0,
+      "left": 0
+    }
+  },
+  "scales": [
+    1,
+    2
+  ],
+  "defaultScale": 1,
+  "storage": {
+    "prefix": "./assets/iso-pixelart/",
+    "ext": ".png"
+  },
+  "fallback": null,
+  "assets": {
+    "required": [
+      "city/bulb",
+      "city/food",
+      "city/gold",
+      "city/luxury",
+      "city/people_content_f",
+      "city/people_content_m",
+      "city/people_happy_f",
+      "city/people_happy_m",
+      "city/people_luxury",
+      "city/people_science",
+      "city/people_tax",
+      "city/people_unhappy_f",
+      "city/people_unhappy_m",
+      "city/pollution",
+      "city/production",
+      "city/sad",
+      "city/trade",
+      "cursor/go",
+      "cursor/torch",
+      "general/texture_1",
+      "general/texture_2",
+      "improvements/irrigation",
+      "improvements/mine",
+      "improvements/pollution",
+      "improvements/railroad_e",
+      "improvements/railroad_n",
+      "improvements/railroad_ne",
+      "improvements/railroad_nw",
+      "improvements/railroad_s",
+      "improvements/railroad_se",
+      "improvements/railroad_sw",
+      "improvements/railroad_w",
+      "improvements/road_e",
+      "improvements/road_n",
+      "improvements/road_ne",
+      "improvements/road_nw",
+      "improvements/road_s",
+      "improvements/road_se",
+      "improvements/road_sw",
+      "improvements/road_w",
+      "map/city",
+      "map/city_rim",
+      "map/fog_ne",
+      "map/fog_nw",
+      "map/fog_se",
+      "map/fog_sw",
+      "map/fort",
+      "map/fortify",
+      "map/hut",
+      "map/walls",
+      "status/pollution_0",
+      "status/pollution_25",
+      "status/pollution_50",
+      "status/pollution_75",
+      "status/science_0",
+      "status/science_25",
+      "status/science_50",
+      "status/science_75",
+      "terrain/arctic",
+      "terrain/arctic_ne",
+      "terrain/arctic_ne-nw",
+      "terrain/arctic_ne-se",
+      "terrain/arctic_ne-se-nw",
+      "terrain/arctic_ne-se-sw",
+      "terrain/arctic_ne-se-sw-nw",
+      "terrain/arctic_ne-sw",
+      "terrain/arctic_ne-sw-nw",
+      "terrain/arctic_nw",
+      "terrain/arctic_se",
+      "terrain/arctic_se-nw",
+      "terrain/arctic_se-sw",
+      "terrain/arctic_se-sw-nw",
+      "terrain/arctic_sw",
+      "terrain/arctic_sw-nw",
+      "terrain/coal",
+      "terrain/coast_e_000",
+      "terrain/coast_e_001",
+      "terrain/coast_e_010",
+      "terrain/coast_e_011",
+      "terrain/coast_e_100",
+      "terrain/coast_e_101",
+      "terrain/coast_e_110",
+      "terrain/coast_e_111",
+      "terrain/coast_n_000",
+      "terrain/coast_n_001",
+      "terrain/coast_n_010",
+      "terrain/coast_n_011",
+      "terrain/coast_n_100",
+      "terrain/coast_n_101",
+      "terrain/coast_n_110",
+      "terrain/coast_n_111",
+      "terrain/coast_s_000",
+      "terrain/coast_s_001",
+      "terrain/coast_s_010",
+      "terrain/coast_s_011",
+      "terrain/coast_s_100",
+      "terrain/coast_s_101",
+      "terrain/coast_s_110",
+      "terrain/coast_s_111",
+      "terrain/coast_w_000",
+      "terrain/coast_w_001",
+      "terrain/coast_w_010",
+      "terrain/coast_w_011",
+      "terrain/coast_w_100",
+      "terrain/coast_w_101",
+      "terrain/coast_w_110",
+      "terrain/coast_w_111",
+      "terrain/desert",
+      "terrain/desert_ne",
+      "terrain/desert_ne-nw",
+      "terrain/desert_ne-se",
+      "terrain/desert_ne-se-nw",
+      "terrain/desert_ne-se-sw",
+      "terrain/desert_ne-se-sw-nw",
+      "terrain/desert_ne-sw",
+      "terrain/desert_ne-sw-nw",
+      "terrain/desert_nw",
+      "terrain/desert_se",
+      "terrain/desert_se-nw",
+      "terrain/desert_se-sw",
+      "terrain/desert_se-sw-nw",
+      "terrain/desert_sw",
+      "terrain/desert_sw-nw",
+      "terrain/doe",
+      "terrain/fish",
+      "terrain/forest",
+      "terrain/forest_ne",
+      "terrain/forest_ne-nw",
+      "terrain/forest_ne-se",
+      "terrain/forest_ne-se-nw",
+      "terrain/forest_ne-se-sw",
+      "terrain/forest_ne-se-sw-nw",
+      "terrain/forest_ne-sw",
+      "terrain/forest_ne-sw-nw",
+      "terrain/forest_nw",
+      "terrain/forest_se",
+      "terrain/forest_se-nw",
+      "terrain/forest_se-sw",
+      "terrain/forest_se-sw-nw",
+      "terrain/forest_sw",
+      "terrain/forest_sw-nw",
+      "terrain/game",
+      "terrain/gems",
+      "terrain/gold",
+      "terrain/grassland",
+      "terrain/grassland_ne",
+      "terrain/grassland_ne-nw",
+      "terrain/grassland_ne-se",
+      "terrain/grassland_ne-se-nw",
+      "terrain/grassland_ne-se-sw",
+      "terrain/grassland_ne-se-sw-nw",
+      "terrain/grassland_ne-sw",
+      "terrain/grassland_ne-sw-nw",
+      "terrain/grassland_nw",
+      "terrain/grassland_se",
+      "terrain/grassland_se-nw",
+      "terrain/grassland_se-sw",
+      "terrain/grassland_se-sw-nw",
+      "terrain/grassland_sw",
+      "terrain/grassland_sw-nw",
+      "terrain/hills",
+      "terrain/hills_ne",
+      "terrain/hills_ne-nw",
+      "terrain/hills_ne-se",
+      "terrain/hills_ne-se-nw",
+      "terrain/hills_ne-se-sw",
+      "terrain/hills_ne-se-sw-nw",
+      "terrain/hills_ne-sw",
+      "terrain/hills_ne-sw-nw",
+      "terrain/hills_nw",
+      "terrain/hills_se",
+      "terrain/hills_se-nw",
+      "terrain/hills_se-sw",
+      "terrain/hills_se-sw-nw",
+      "terrain/hills_sw",
+      "terrain/hills_sw-nw",
+      "terrain/horse",
+      "terrain/jungle",
+      "terrain/jungle_ne",
+      "terrain/jungle_ne-nw",
+      "terrain/jungle_ne-se",
+      "terrain/jungle_ne-se-nw",
+      "terrain/jungle_ne-se-sw",
+      "terrain/jungle_ne-se-sw-nw",
+      "terrain/jungle_ne-sw",
+      "terrain/jungle_ne-sw-nw",
+      "terrain/jungle_nw",
+      "terrain/jungle_se",
+      "terrain/jungle_se-nw",
+      "terrain/jungle_se-sw",
+      "terrain/jungle_se-sw-nw",
+      "terrain/jungle_sw",
+      "terrain/jungle_sw-nw",
+      "terrain/land",
+      "terrain/mountains",
+      "terrain/mountains_ne",
+      "terrain/mountains_ne-nw",
+      "terrain/mountains_ne-se",
+      "terrain/mountains_ne-se-nw",
+      "terrain/mountains_ne-se-sw",
+      "terrain/mountains_ne-se-sw-nw",
+      "terrain/mountains_ne-sw",
+      "terrain/mountains_ne-sw-nw",
+      "terrain/mountains_nw",
+      "terrain/mountains_se",
+      "terrain/mountains_se-nw",
+      "terrain/mountains_se-sw",
+      "terrain/mountains_se-sw-nw",
+      "terrain/mountains_sw",
+      "terrain/mountains_sw-nw",
+      "terrain/oasis",
+      "terrain/ocean",
+      "terrain/oil",
+      "terrain/plains",
+      "terrain/plains_ne",
+      "terrain/plains_ne-nw",
+      "terrain/plains_ne-se",
+      "terrain/plains_ne-se-nw",
+      "terrain/plains_ne-se-sw",
+      "terrain/plains_ne-se-sw-nw",
+      "terrain/plains_ne-sw",
+      "terrain/plains_ne-sw-nw",
+      "terrain/plains_nw",
+      "terrain/plains_se",
+      "terrain/plains_se-nw",
+      "terrain/plains_se-sw",
+      "terrain/plains_se-sw-nw",
+      "terrain/plains_sw",
+      "terrain/plains_sw-nw",
+      "terrain/river",
+      "terrain/river_mouth_ne",
+      "terrain/river_mouth_nw",
+      "terrain/river_mouth_se",
+      "terrain/river_mouth_sw",
+      "terrain/river_ne",
+      "terrain/river_ne-nw",
+      "terrain/river_ne-se",
+      "terrain/river_ne-se-nw",
+      "terrain/river_ne-se-sw",
+      "terrain/river_ne-se-sw-nw",
+      "terrain/river_ne-sw",
+      "terrain/river_ne-sw-nw",
+      "terrain/river_nw",
+      "terrain/river_se",
+      "terrain/river_se-nw",
+      "terrain/river_se-sw",
+      "terrain/river_se-sw-nw",
+      "terrain/river_sw",
+      "terrain/river_sw-nw",
+      "terrain/seal",
+      "terrain/shield",
+      "terrain/swamp",
+      "terrain/swamp_ne",
+      "terrain/swamp_ne-nw",
+      "terrain/swamp_ne-se",
+      "terrain/swamp_ne-se-nw",
+      "terrain/swamp_ne-se-sw",
+      "terrain/swamp_ne-se-sw-nw",
+      "terrain/swamp_ne-sw",
+      "terrain/swamp_ne-sw-nw",
+      "terrain/swamp_nw",
+      "terrain/swamp_se",
+      "terrain/swamp_se-nw",
+      "terrain/swamp_se-sw",
+      "terrain/swamp_se-sw-nw",
+      "terrain/swamp_sw",
+      "terrain/swamp_sw-nw",
+      "terrain/tundra",
+      "terrain/tundra_ne",
+      "terrain/tundra_ne-nw",
+      "terrain/tundra_ne-se",
+      "terrain/tundra_ne-se-nw",
+      "terrain/tundra_ne-se-sw",
+      "terrain/tundra_ne-se-sw-nw",
+      "terrain/tundra_ne-sw",
+      "terrain/tundra_ne-sw-nw",
+      "terrain/tundra_nw",
+      "terrain/tundra_se",
+      "terrain/tundra_se-nw",
+      "terrain/tundra_se-sw",
+      "terrain/tundra_se-sw-nw",
+      "terrain/tundra_sw",
+      "terrain/tundra_sw-nw",
+      "units/artillery",
+      "units/battleship",
+      "units/bomber",
+      "units/cannon",
+      "units/caravan",
+      "units/carrier",
+      "units/catapult",
+      "units/chariot",
+      "units/combat_1",
+      "units/combat_2",
+      "units/combat_3",
+      "units/combat_4",
+      "units/combat_5",
+      "units/combat_6",
+      "units/combat_7",
+      "units/combat_8",
+      "units/cruiser",
+      "units/diplomat",
+      "units/fighter",
+      "units/frigate",
+      "units/horseman",
+      "units/ironclad",
+      "units/knight",
+      "units/mechanizedinfantry",
+      "units/musketman",
+      "units/nuclear",
+      "units/rifleman",
+      "units/sail",
+      "units/settlers",
+      "units/spearman",
+      "units/submarine",
+      "units/swordman",
+      "units/tank",
+      "units/transport",
+      "units/trireme",
+      "units/warrior"
+    ],
+    "optional": [
+      "city/people_tax_f",
+      "city/people_science_f",
+      "city/people_luxury_f"
+    ],
+    "ui": [
+      "city/",
+      "status/",
+      "cursor/",
+      "general/"
+    ]
+  },
+  "names": {
+    "terrain": {},
+    "special": {
+      "Forest:Game": "doe"
+    },
+    "unit": {}
+  },
+  "families": {
+    "base": {
+      "land": "terrain/land",
+      "ocean": "terrain/ocean"
+    },
+    "terrain": {
+      "method": "bitmask",
+      "neighbours": "edges",
+      "sprite": "terrain/{terrain}_{dirs}",
+      "isolated": "terrain/{terrain}",
+      "join": "-",
+      "skip": [
+        "Ocean"
+      ],
+      "matches": {
+        "River": [
+          "River",
+          "@water"
+        ]
+      }
+    },
+    "coast": {
+      "method": "corners",
+      "neighbours": "all",
+      "sprite": "terrain/coast_{corner}_{bits}",
+      "corners": {
+        "n": {
+          "at": {
+            "x": 0,
+            "y": 0
+          },
+          "neighbours": [
+            "nw",
+            "n",
+            "ne"
+          ]
+        },
+        "e": {
+          "at": {
+            "x": 0,
+            "y": 0
+          },
+          "neighbours": [
+            "ne",
+            "e",
+            "se"
+          ]
+        },
+        "s": {
+          "at": {
+            "x": 0,
+            "y": 0
+          },
+          "neighbours": [
+            "se",
+            "s",
+            "sw"
+          ]
+        },
+        "w": {
+          "at": {
+            "x": 0,
+            "y": 0
+          },
+          "neighbours": [
+            "sw",
+            "w",
+            "nw"
+          ]
+        }
+      }
+    },
+    "riverMouth": {
+      "method": "edges",
+      "neighbours": "edges",
+      "sprite": "terrain/river_mouth_{dir}"
+    },
+    "irrigation": {
+      "sprite": "improvements/irrigation",
+      "overTerrain": true
+    },
+    "mine": {
+      "sprite": "improvements/mine"
+    },
+    "pollution": {
+      "sprite": "improvements/pollution"
+    },
+    "road": {
+      "method": "edges",
+      "neighbours": "all",
+      "sprite": "improvements/road_{dir}",
+      "isolated": {
+        "dot": "#b89460",
+        "size": 4
+      }
+    },
+    "railroad": {
+      "method": "edges",
+      "neighbours": "all",
+      "sprite": "improvements/railroad_{dir}",
+      "isolated": {
+        "dot": "#c4ccd4",
+        "size": 4
+      }
+    },
+    "fog": {
+      "method": "edges",
+      "neighbours": "edges",
+      "sprite": "map/fog_{dir}"
+    },
+    "special": {
+      "sprite": "terrain/{special}",
+      "anchors": {
+        "Shield": {
+          "x": 27,
+          "y": 10
+        }
+      }
+    },
+    "hut": {
+      "sprite": "map/hut"
+    }
+  },
+  "units": {
+    "sprite": "units/{unit}",
+    "colouring": {
+      "mode": "replaceColours",
+      "keys": [
+        "#60E064",
+        "#2C7800"
+      ]
+    },
+    "fortified": "map/fortify",
+    "stackOffset": {
+      "x": -2,
+      "y": -2
+    },
+    "status": {
+      "x": 0.5,
+      "baseline": 0.75,
+      "fontSize": 12
+    },
+    "anchor": {
+      "x": 0,
+      "y": -16
+    }
+  },
+  "cities": {
+    "mode": "styles",
+    "sprite": "map/city",
+    "walls": {
+      "sprite": "map/walls"
+    },
+    "colouring": {
+      "mode": "overlay",
+      "sprite": "map/city_rim",
+      "keys": [
+        "#60E064",
+        "#2C7800"
+      ],
+      "anchor": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    "styles": {
+      "names": [
+        "pixel"
+      ],
+      "default": "pixel",
+      "civilizations": {},
+      "sizes": [
+        1
+      ],
+      "walls": {
+        "plain": "",
+        "walled": ""
+      }
+    },
+    "labels": {
+      "x": 0.5,
+      "sizeBaseline": 0.72,
+      "nameBaseline": 1.45,
+      "fontSize": 12,
+      "disorderIcon": {
+        "x": 24,
+        "y": 2
+      }
+    },
+    "anchor": {
+      "x": 0,
+      "y": -16
+    }
+  },
+  "ui": {
+    "icon": 14,
+    "citizen": {
+      "width": 16,
+      "step": 12
+    },
+    "cursor": 26
+  }
+}

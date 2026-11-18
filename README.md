@@ -2,8 +2,8 @@
 
 An original, royalty-free pixel-art tileset for [civ.one](https://civ.one): every sprite its Civ1 rules need
 (units, terrain, cities, improvements and interface icons) at 32px, with the feel of the early-90s classics and none
-of their art. It comes in two packs: one for the square grid, and one for the hexagonal grid
-([below](#the-hexagonal-pack)).
+of their art. It comes in three packs: one for the square grid, one for the hexagonal grid
+([below](#the-hexagonal-pack)) and one for the isometric grid ([below](#the-isometric-pack)).
 
 ![A map drawn with the pack](previews/map.png)
 
@@ -47,6 +47,21 @@ The interface's sprites, and the figures on the units and specials, are the squa
 
 ![A hexagonal map drawn with the pack](previews/hex-map.png)
 
+## The isometric pack
+
+The same style on civ.one's staggered isometric grid: diamonds 64 × 32, in rows 16px apart, odd rows shifted half a
+diamond. What has the shape of a tile is drawn again for a diamond, from [SPEC-ISO.md](SPEC-ISO.md):
+
+- terrain, with all 16 ways of joining its four edge neighbours, and features that run on into a joined neighbour;
+- the coast in four quarters, rivers and river mouths;
+- roads and railroads in eight directions, irrigation, fog, the fort and the fortified wall (also a walled city's);
+- the city, standing up out of its tile, with a rim in its owner's colours;
+- units standing on a diamond badge, reaching up out of their tile.
+
+The interface's sprites, and the figures on the units and specials, are the square pack's own.
+
+![An isometric map drawn with the pack](previews/iso-map.png)
+
 ## Layout
 
 | Path | What |
@@ -54,11 +69,13 @@ The interface's sprites, and the figures on the units and specials, are the squa
 | `tileset.json` | The tileset descriptor civ.one reads (id `civ1-pixelart`) |
 | `pack/` | The built sprites, one PNG per sprite name, and a copy of `tileset.json` |
 | `tileset-hex.json`, `pack-hex/` | The hexagonal pack's descriptor (id `hex-pixelart`) and its built sprites |
+| `tileset-iso.json`, `pack-iso/` | The isometric pack's descriptor (id `iso-pixelart`) and its built sprites |
 | `src/lib.js` | Drawing primitives (shaded ellipses, bevels, outlines) and a PNG writer |
 | `src/units.js`, `src/combat.js` | Units and combat frames |
 | `src/terrain.js` | Land, ocean, terrain joins, coast, rivers, specials, improvements and fog |
 | `src/misc.js` | Interface icons, citizens, cursors, textures, city, hut, fort |
 | `src/hex.js`, `src/hex-map.js` | The hexagonal pack: geometry, terrain, joins, coast and rivers; then everything else |
+| `src/iso.js`, `src/iso-map.js` | The isometric pack, the same way |
 | `tools/` | Preview sheets |
 
 ## Building
@@ -74,11 +91,12 @@ npm run previews
 ```
 
 `npm run check` fails unless the committed packs are what the code draws. It compares pixels, not bytes, as PNG
-compression changes with the zlib Node ships. It also checks the hexagonal pack's geometry:
+compression changes with the zlib Node ships. It also checks the hexagonal and isometric packs' geometry:
 
-- its tiles, put down in odd-r rows, cover every pixel exactly once;
-- every sprite drawn on the map's tiles keeps to its own tile's pixels, and the city to the inside of its rim;
-- its patterns repeat on the lattice, and the dither and glints keep to their own 4 × 3 periods and cells.
+- their tiles, put down in staggered rows, cover every pixel exactly once;
+- every sprite drawn on the map's tiles keeps to its own tile's pixels (a tall one may also reach above its tile), and
+  the city keeps out from under its rim;
+- their patterns repeat on the lattice, and the dither and glints keep to their own small periods and cells.
 
 ## Licence
 

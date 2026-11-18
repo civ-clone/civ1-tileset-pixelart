@@ -1,6 +1,7 @@
 // Writes every sprite of the pack as <out>/<name>.png, checks the list against the manifest's required sprites, and
 //  copies the manifest: `node src/build.js <out dir> <manifest.json>`. A manifest for the hexagonal grid
-//  (`tileset-hex.json`) builds the hexagonal pack (`src/hex-map.js`).
+//  (`tileset-hex.json`) builds the hexagonal pack (`src/hex-map.js`), and one for the staggered isometric grid
+//  (`tileset-iso.json`) the isometric pack (`src/iso-map.js`).
 const fs = require('fs'),
   path = require('path');
 const { png, unit } = require('./lib');
@@ -13,6 +14,7 @@ const [out, manifestPath] = process.argv.slice(2);
 const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
 const sprites = {};
 if (manifest.grid === 'hex-odd-r') Object.assign(sprites, require('./hex-map'));
+else if (manifest.grid === 'staggered-iso') Object.assign(sprites, require('./iso-map'));
 else {
   for (const [k, s] of Object.entries(terrainSprites)) sprites[`terrain/${k}`] = s;
   for (const [k, s] of Object.entries(specials)) sprites[`terrain/${k}`] = s;
