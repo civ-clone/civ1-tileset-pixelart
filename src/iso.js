@@ -1,6 +1,6 @@
-// EXPLORATION, not part of the pack: the square pack's terrain drawn natively for civ.one's staggered isometric grid
-//  (`staggered-iso`), as diamonds 64 × 32 in rows 16px apart with every odd row shifted 32px across, the way
-//  `IsoProjection` draws Civ2's art. It follows `hex.js` closely: only the geometry and the lattice's periods change.
+// The isometric pack's tile-shaped terrain: diamonds 64 × 32, in rows 16px apart with every odd row shifted 32px
+//  across, as civ.one's staggered isometric grid (`staggered-iso`) draws them. See SPEC-ISO.md. It follows `hex.js`:
+//  only the geometry and the lattice's periods differ.
 //
 // Every sprite owns exactly the pixels `IsoProjection.pixelToTile` gives its tile (`owns`), and textures repeat on the
 //  grid's lattice (every 64px across, every 16px down with a 32px shift), so tiles meet with no seam on any edge.
@@ -281,7 +281,7 @@ const overlay = (name) => {
 const sprites = {};
 for (const name of Object.keys(GROUND)) {
   const draw = overlay(name);
-  for (const m of MASKS) sprites[m.length ? `terrain/${name}/${named(m)}` : `terrain/${name}/isolated`] = draw(m);
+  for (const m of MASKS) sprites[m.length ? `terrain/${name}_${named(m)}` : `terrain/${name}`] = draw(m);
 }
 
 // ---------- bases ----------
@@ -291,22 +291,170 @@ const base = (fn) => {
   return t;
 };
 const OCEAN = ['#22408c', '#28489a', '#2e50a6', '#3458b0'];
+// Short wave crests, each in its own 8 × 8 cell of the lattice's fundamental tile.
+const ocean = (x, y) => {
+  const [xr, yr] = canon(x, y),
+    cx = Math.floor(xr / 8),
+    cy = Math.floor(yr / 8);
+  if (hash(cx, cy, 40) > 0.4) {
+    const len = 3 + Math.floor(hash(cx, cy, 43) * 3),
+      lx = xr - cx * 8 - Math.floor(hash(cx, cy, 41) * 3),
+      ly = yr - cy * 8 - 2 - Math.floor(hash(cx, cy, 42) * 4);
+    if (ly === -1 && lx === Math.floor(len / 2)) return '#c8dcf8';
+    if (ly === 0 && lx >= 0 && lx < len) return lx === 0 || lx === len - 1 ? '#6a90d8' : '#a8c4f0';
+    if (ly === 1 && lx >= 1 && lx < len + 1) return '#1c3478';
+  }
+  return pick(lfbm(x, y, 3), OCEAN);
+};
 sprites['terrain/land'] = base(land);
-sprites['terrain/ocean'] = base((x, y) => (glint(x, y, 61) ? '#6a90d8' : pick(lfbm(x, y, 60), OCEAN)));
+sprites['terrain/ocean'] = base(ocean);
 
-// ---------- coast (rough: one band an edge, not the corner method the real pack would want) ----------
-for (const d of DIRS) {
-  const t = new Spr(W, H);
+// The middle of the diamond, of each edge (where a road or a river crosses into that neighbour) and its corners (where
+//  a road crosses into a corner neighbour).
+const CENTRE = [32, 16];
+const MID = Object.fromEntries(DIRS.map((d) => [d, EDGE[d][0].map((v, i) => (v + EDGE[d][1][i]) / 2)]));
+const ALL = ['n', 'ne', 'e', 'se', 's', 'sw', 'w', 'nw'];
+const TOWARDS = { ...MID, ...V };
+
+// ---------- rivers ----------
+// A channel from the middle to the middle of each joined edge, where the neighbour's carries on.
+const WATER = ['#3c6cc4', '#4a7ad0', '#5888da'],
+  BANK = '#8c7a48',
+  NEXT = [
+    [1, 0],
+    [-1, 0],
+    [0, 1],
+    [0, -1],
+  ],
+  AROUND = [...NEXT, [1, 1], [-1, -1], [1, -1], [-1, 1]];
+const river = (mask) => {
+  const water = new Spr(W, H);
+  const brush = (x, y, r) => water.ellipse(x, y, r, r * 0.75, '#000001');
+  brush(CENTRE[0], CENTRE[1], mask.length ? 3.8 : 5);
+  for (const d of mask) {
+    const [ex, ey] = MID[d],
+      // Past the edge, so the channel is full width where it crosses.
+      fx = ex + (ex - CENTRE[0]) * 0.15,
+      fy = ey + (ey - CENTRE[1]) * 0.15,
+      nx = -(fy - CENTRE[1]),
+      ny = fx - CENTRE[0],
+      nl = Math.hypot(nx, ny);
+    for (let i = 0; i <= 48; i++) {
+      const t = i / 48,
+        // Bends one way and back, and is straight at both ends, so it meets the neighbour's square on.
+        wob = Math.sin(t * Math.PI) * 2.4 * (DIRS.indexOf(d) % 2 ? 1 : -1) * (1 - t);
+      brush(CENTRE[0] + (fx - CENTRE[0]) * t + (nx / nl) * wob, CENTRE[1] + (fy - CENTRE[1]) * t + (ny / nl) * wob, 3);
+    }
+  }
+  const out = new Spr(W, H);
   for (let y = 0; y < H; y++)
     for (let x = 0; x < W; x++) {
       if (!owns(x, y)) continue;
-      const { dist } = edgeDist(x, y, d),
-        depth = 2 + edgeNoise(x, y, d, 62) * 3;
-      if (dist < depth - 1) t.set(x, y, '#e0cc8a');
-      else if (dist < depth + 1.5) t.set(x, y, '#4a80d4');
-      else if (dist < depth + 3 && dither(x, y) < 0.5) t.set(x, y, '#3c6cc4');
+      if (water.get(x, y)) {
+        const edge = NEXT.some(([dx, dy]) => water.in(x + dx, y + dy) && !water.get(x + dx, y + dy));
+        out.set(x, y, edge ? '#2c54a4' : glint(x, y, 201) ? '#a8c8f4' : pick(lnoise(x, y, 16, 4, 200), WATER));
+      } else if (AROUND.some(([dx, dy]) => water.get(x + dx, y + dy)))
+        out.set(x, y, lhash(x, y, 202) > 0.5 ? BANK : '#6e6a34');
     }
-  sprites[`terrain/coast/${d}`] = t;
-}
+  return out;
+};
+for (const m of MASKS) sprites[m.length ? `terrain/river_${named(m)}` : 'terrain/river'] = river(m);
 
-module.exports = { W, H, ROW, DIRS, MASKS, OFFSET, named, owns, whose, sprites };
+// ---------- coast ----------
+// The coast in four quarters, each a half-size diamond at one of the diamond's corners, which put together are the
+//  whole diamond. Each is picked by the three neighbours that touch its corner: the two across the edges either side and
+//  the one beyond the corner itself, `1` for land, in the order `CORNERS` gives. A quarter draws sand, wet sand, a
+//  foam line and a band of shallow water in from every edge (or corner) with land beyond, on its own pixels alone.
+const QUARTER = { n: [32, 8], e: [48, 16], s: [32, 24], w: [16, 16] };
+const CORNERS = { n: ['nw', 'n', 'ne'], e: ['ne', 'e', 'se'], s: ['se', 's', 'sw'], w: ['sw', 'w', 'nw'] };
+const quarterOf = (x, y) => {
+  let best = null,
+    min = Infinity;
+  for (const [q, [cx, cy]] of Object.entries(QUARTER)) {
+    const d = Math.abs(x + 0.5 - cx) / 16 + Math.abs(y + 0.5 - cy) / 8;
+    if (d < min) {
+      min = d;
+      best = q;
+    }
+  }
+  return best;
+};
+// How far a pixel is in from the neighbour `d`: from its edge for an edge neighbour, and for a corner neighbour from
+//  its corner, measured as an edge's distance is, so a corner's shore is a small diamond cap.
+const shoreDist = (x, y, d) => {
+  if (DIRS.includes(d)) return edgeDist(x, y, d).dist;
+  const [vx, vy] = V[d];
+  return (Math.abs(x + 0.5 - vx) / 2 + Math.abs(y + 0.5 - vy)) / Math.sqrt(1.25);
+};
+const coastQuarter = (q, bits) => {
+  const t = new Spr(W, H),
+    land = CORNERS[q].filter((_, i) => bits[i] === '1');
+  for (let y = 0; y < H; y++)
+    for (let x = 0; x < W; x++) {
+      if (!owns(x, y) || quarterOf(x, y) !== q) continue;
+      const dist = Math.min(...land.map((e) => shoreDist(x, y, e)), 99),
+        n = lnoise(x, y, 16, 4, 60) * 1.4;
+      if (dist < 1 + n) t.set(x, y, lhash(x, y, 61) > 0.85 ? '#c8b06a' : '#e4d090');
+      else if (dist < 1.8 + n) t.set(x, y, '#b8a46a');
+      else if (dist < 2.6 + n) t.set(x, y, lhash(x, y, 62) > 0.45 ? '#e8f0fc' : '#7ea4e0');
+      else if (dist < 5 + n * 1.3)
+        t.set(x, y, dither(x, y) >= 0.5 && dist > 4 + n ? null : lhash(x, y, 63) > 0.92 ? '#8cb0e8' : '#3e74c4');
+    }
+  return t;
+};
+for (const q of Object.keys(QUARTER))
+  for (let b = 0; b < 8; b++) {
+    const bits = [0, 1, 2].map((i) => ((b >> i) & 1 ? '1' : '0')).join('');
+    sprites[`terrain/coast_${q}_${bits}`] = coastQuarter(q, bits);
+  }
+
+// Fresh water fanning out from an edge onto the sea, between sand bars.
+const riverMouth = (d) => {
+  const t = new Spr(W, H),
+    [mx, my] = MID[d],
+    ax = CENTRE[0] - mx,
+    ay = CENTRE[1] - my,
+    al = Math.hypot(ax, ay);
+  for (let y = 0; y < H; y++)
+    for (let x = 0; x < W; x++) {
+      if (!owns(x, y)) continue;
+      const px = x + 0.5 - mx,
+        py = y + 0.5 - my,
+        along = (px * ax + py * ay) / al,
+        across = (px * ay - py * ax) / al,
+        w = 3 + along * 0.45 + lnoise(x, y, 16, 4, 70) * 1.5;
+      if (along < 0 || along > 13 || Math.abs(across) > w) continue;
+      if (Math.abs(across) > w - 1.4 && along < 9) t.set(x, y, '#e0cc8a');
+      else t.set(x, y, along > 10 && dither(x, y) >= 0.5 ? null : glint(x, y, 71) ? '#a8c8f4' : '#4a80d4');
+    }
+  return t;
+};
+for (const d of DIRS) sprites[`terrain/river_mouth_${d}`] = riverMouth(d);
+
+module.exports = {
+  W,
+  H,
+  ROW,
+  DIRS,
+  ALL,
+  MASKS,
+  OFFSET,
+  MID,
+  V,
+  TOWARDS,
+  CENTRE,
+  CORNERS,
+  named,
+  owns,
+  whose,
+  edgeDist,
+  edgeNoise,
+  lnoise,
+  lhash,
+  lfbm,
+  canon,
+  dither,
+  glint,
+  pick,
+  sprites,
+};
