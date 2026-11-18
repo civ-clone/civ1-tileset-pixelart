@@ -1085,6 +1085,7 @@
   "cities": {
     "mode": "styles",
     "sprite": "map/city",
+    "walls": { "sprite": "map/fortify" },
     "colouring": {
       "mode": "overlay",
       "sprite": "map/city_rim",

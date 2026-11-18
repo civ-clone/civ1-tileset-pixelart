@@ -70,7 +70,8 @@ again for a hexagon.
   meets the neighbouring tiles' at each corner, as a fringe's does.
 - **fort:** an earth bank and a stake palisade just inside the hexagon's edge, with a gate at the bottom and an open
   centre.
-- **fortify:** a crenellated stone wall about 4px thick round the inside of a unit's badge.
+- **fortify:** a crenellated stone wall about 4px thick round the inside of a unit's badge. The descriptor's
+  `cities.walls` draws it over a walled city too.
 - **city:** drawn for the hexagon, with the square pack's buildings. The game draws `city_rim` over it.
   - At the back are a temple with a house and a keep either side, and two more houses stand at the sides.
   - A stone wall runs along the two lower edges, with a tower at each end and a gatehouse at the bottom corner.
