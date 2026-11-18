@@ -455,6 +455,7 @@
   "cities": {
     "mode": "box",
     "sprite": "map/city",
+    "walls": { "sprite": "map/fortify" },
     "inset": 1,
     "occupied": "#000",
     "colouring": {

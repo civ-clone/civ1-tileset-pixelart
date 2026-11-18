@@ -115,7 +115,8 @@ Drawn over the terrain, in the lower right of the tile unless noted.
 - **fog_{n,e,s,w}**: a black ordered-dither fade from that edge, about 7–12px deep.
 - **hut**: a thatched village hut with a smaller hut and a totem.
 - **fort**: an earth bank with a stake palisade round the tile edge and a gate at the front; transparent centre.
-- **fortify**: a crenellated stone wall frame, about 4px thick, drawn over a fortified unit's badge.
+- **fortify**: a crenellated stone wall frame, about 4px thick, drawn over a fortified unit's badge. The descriptor's
+  `cities.walls` draws it over a walled city too, as Civ1 draws its fortified frame over a city with City Walls.
 - **city** (30 × 30, on a box of the owner's main colour): houses with red and brown roofs, a columned temple and a
   stone tower, a crenellated wall along the front in the owner's second colour with a wooden gate, and a calm area in
   the lower middle where the game prints the city's size.

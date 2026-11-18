@@ -24,7 +24,7 @@ smaller originals.
 - 11 terrains, each with all 16 ways of joining its neighbours. Mountain ranges, hills, forests and jungle run on from
   tile to tile, and edges against other terrain are ragged rather than square.
 - Coast, rivers and river mouths, 11 specials, roads, railroads, irrigation, mines, pollution and fog.
-- The city, hut, fort and fortified overlay, citizens, interface icons and cursors.
+- The city, hut, fort and fortified overlay (also drawn over a walled city), citizens, interface icons and cursors.
 
 ![Units](previews/units.png)
 
@@ -39,7 +39,7 @@ shifted half a hex. What has the shape of a tile is drawn again for a hexagon, f
 
 - terrain, with all 64 ways of joining its six neighbours, and features that run on into a joined neighbour;
 - the coast in six wedges, rivers and river mouths;
-- roads and railroads in six directions, irrigation, fog, the fort and the fortified wall;
+- roads and railroads in six directions, irrigation, fog, the fort and the fortified wall (also a walled city's);
 - the city with a rim in its owner's colours;
 - units on a hexagonal badge.
 
