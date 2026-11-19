@@ -245,12 +245,12 @@ const person = ({ mood = 'content', female = false, cloth, legs, hair, hold, rig
   s.set(6, ey, O).set(9, ey, O);
   s.set(8, hy + 4 + (sad ? 1 : 0), skin.d);
   if (angry)
-    s.set(6, hy + 2, O)
+    // brows slanting down to the nose, a pixel above the eyes, so they don't read as a band
+    s.set(5, hy + 1, skin.d)
+      .set(6, hy + 1, O)
       .set(7, hy + 2, O)
       .set(9, hy + 2, O)
-      .set(10, hy + 2, O)
-      .set(7, hy + 3, skin.d)
-      .set(8, hy + 3, skin.d)
+      .set(10, hy + 1, O)
       .rect(7, hy + 6, 2, 1, lip)
       .set(6, hy + 7, lip)
       .set(9, hy + 7, lip);

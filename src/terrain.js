@@ -732,12 +732,12 @@ const specials = {
   furs: special((s) => {
     const r = ramp('#3a2414', '#6a4628', '#946a40', '#b88c5c');
     // a rolled pelt
-    s.ball(22, 24, 7, 3.4, r);
-    s.ellipse(15.5, 24, 1.5, 3, r.d).ellipse(15.5, 24, 0.8, 1.6, r.l);
-    s.line(18, 22, 27, 22, r.h);
-    // the striped tail hanging from it
-    s.line(27, 26, 29, 30, r.m, 2);
-    s.set(28, 27, r.d).set(29, 29, r.d);
+    s.ball(20, 24, 6.5, 3.4, r);
+    s.ellipse(14, 24, 1.5, 3, r.d).ellipse(14, 24, 0.8, 1.6, r.l);
+    s.line(16, 22, 24, 22, r.h);
+    // the striped tail hanging from it, kept inside the corner every pack draws specials in
+    s.line(22, 26, 23, 30, r.m, 2);
+    s.set(22, 27, r.d).set(23, 29, r.d);
   }),
   iron: special((s) => {
     const ore = ramp('#4a1a0c', '#8a3418', '#b4542c', '#d8784c');
@@ -759,7 +759,8 @@ const specials = {
     ).bevel(R.steel);
   }),
   ivory: special((s) => {
-    // two tusks rising from their roots and curving in, so they cross near the tips
+    // two cream tusks rising from their roots and curving in, so they cross near the tips: yellowed, so they show on ice
+    const tusk = ramp('#7a6438', '#c4a868', '#e4d09c', '#fff4d0');
     for (const [x0, dir] of [
       [18, 1],
       [28, -1],
@@ -768,7 +769,8 @@ const specials = {
         const t = i / 12,
           x = Math.round(x0 + dir * 9 * t * t),
           y = Math.round(29 - 11 * t);
-        s.rect(x, y, i < 8 ? 2 : 1, 1, i < 3 ? R.white.m : i > 9 ? R.white.h : R.white.l);
+        s.rect(x, y, i < 8 ? 2 : 1, 1, i < 3 ? tusk.m : i > 9 ? tusk.h : tusk.l);
+        if (i < 8) s.set(x + 1, y, i < 3 ? tusk.d : tusk.m);
       }
   }),
   peat: special((s) => {

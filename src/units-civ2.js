@@ -1,6 +1,13 @@
 // The units Civilization II's rules have beyond Civilization's, drawn from SPEC.md as the others are: each on a 32px
 //  figure layer that `unit()` outlines and sets on the player's badge.
-const { R, OUTLINE, ramp } = require('./lib');
+const { R, OUTLINE, ramp, Spr } = require('./lib');
+
+// Draws `draw` `by` pixels lower, for a figure that would otherwise reach the top row, where it would get no outline.
+const lower = (by, draw) => (f) => {
+  const g = new Spr(f.w, f.h);
+  draw(g);
+  f.over(g, 0, by);
+};
 
 const ORANGE = ramp('#7a3008', '#c85a14', '#f08830', '#ffb868'),
   GREY = ramp('#4a4c54', '#8a8c94', '#b4b6bc', '#dcdee2'),
@@ -123,9 +130,9 @@ module.exports = {
     f.line(21, 12, 25, 13, R.skin.m, 2);
     f.ball(19, 13, 1.4, 1.4, R.skin);
   },
-  pikeman: (f) => {
+  pikeman: lower(1, (f) => {
     // pike, upright and slanting forward
-    f.line(12, 29, 25, 0, R.wood.m).line(13, 29, 26, 0, R.wood.d);
+    f.line(12, 28, 25, 0, R.wood.m).line(13, 28, 26, 0, R.wood.d);
     f.line(25, 0, 26, 2, R.metal.h);
     stand(f, R.red, R.dark, R.wood.d);
     // breastplate
@@ -146,8 +153,8 @@ module.exports = {
     f.ball(16.5, 4, 2.8, 2.2, R.metal);
     f.rect(16, 0, 2, 3, R.metal.l);
     f.ball(20, 15, 1.5, 1.5, R.skin).ball(16, 20, 1.5, 1.5, R.skin);
-  },
-  crusader: (f) => {
+  }),
+  crusader: lower(1, (f) => {
     horse(f, GREY);
     f.rect(10, 13, 9, 4, R.white.m).bevel(R.white);
     f.line(14, 13, 14, 16, R.red.m).line(12, 14, 16, 14, R.red.m);
@@ -161,8 +168,8 @@ module.exports = {
     f.rect(18, 5, 3, 1, R.bronze.l);
     f.line(20, 4, 24, 0, R.metal.h).line(21, 4, 25, 0, R.metal.l);
     f.ball(19, 6, 1.3, 1.3, R.skin);
-  },
-  elephant: (f) => {
+  }),
+  elephant: lower(1, (f) => {
     // legs, thick and wrinkled at the foot
     for (const [x, d] of [
       [6, 1],
@@ -201,8 +208,8 @@ module.exports = {
     f.set(15, 2, OUTLINE);
     f.line(9, 9, 22, 0, R.wood.m);
     f.set(22, 0, R.metal.h).set(23, 0, R.metal.h);
-  },
-  dragoon: (f) => {
+  }),
+  dragoon: lower(1, (f) => {
     horse(f);
     f.rect(11, 13, 7, 4, R.red.m).bevel(R.red);
     rider(f, R.blue);
@@ -213,8 +220,8 @@ module.exports = {
     f.ball(14.5, 2, 3, 2.2, R.bronze);
     f.line(12, 0, 17, 0, R.dark.m).line(11, 1, 12, 4, R.dark.m);
     f.ball(16, 9, 1.3, 1.3, R.skin);
-  },
-  cavalry: (f) => {
+  }),
+  cavalry: lower(1, (f) => {
     horse(f, R.horse, true);
     f.rect(11, 13, 7, 4, R.olive.m).bevel(R.olive);
     rider(f, R.khaki);
@@ -225,7 +232,7 @@ module.exports = {
     f.line(17, 8, 20, 8, R.khaki.m, 2);
     f.line(21, 8, 30, 4, R.metal.h).line(21, 9, 30, 5, R.metal.l);
     f.ball(20.5, 8, 1.3, 1.3, R.skin);
-  },
+  }),
   alpinetrooper: (f) => {
     // pack with a coil of rope
     f.rect(8, 11, 4, 9, R.olive.m).bevel(R.olive);
@@ -281,7 +288,7 @@ module.exports = {
     f.line(20, 12, 26, 7, R.dark.l);
     f.ball(13, 19, 1.5, 1.5, R.skin).ball(20, 13, 1.5, 1.5, R.skin);
   },
-  paratrooper: (f) => {
+  paratrooper: lower(2, (f) => {
     // open canopy, panels alternating
     f.poly(
       [
@@ -311,7 +318,7 @@ module.exports = {
     f.ball(16.5, 15, 2, 2, R.skin);
     f.ball(16.5, 14, 2.2, 1.6, R.olive);
     f.line(13, 18, 13, 21, R.olive.d).line(19, 18, 19, 21, R.olive.d);
-  },
+  }),
   marine: (f) => {
     stand(f, JUNGLE, JUNGLE, R.dark.d);
     // camouflage blotches
@@ -407,7 +414,7 @@ module.exports = {
     f.rect(14, 4, 6, 1, R.dark.d);
     f.set(16, 2, R.dark.d).set(17, 2, R.dark.d);
   },
-  howitzer: (f) => {
+  howitzer: lower(1, (f) => {
     // thick barrel, raised high
     f.line(13, 9, 28, 1, SAND.d, 3);
     f.line(13, 8, 27, 0, SAND.l);
@@ -446,7 +453,7 @@ module.exports = {
     ).bevel(R.dark);
     for (let x = 6; x <= 25; x += 4) f.ball(x, 22.5, 1.8, 1.8, R.metal);
     for (let x = 4; x <= 27; x += 2) f.set(x, 26, R.dark.l);
-  },
+  }),
   helicopter: (f) => {
     // rotor blur and mast
     f.line(1, 5, 31, 5, R.dark.l).line(5, 4, 27, 4, R.steel.l);
@@ -657,7 +664,7 @@ module.exports = {
     }
     waves(f, 22, 3, 28);
   },
-  galleon: (f) => {
+  galleon: lower(1, (f) => {
     // masts and yards
     for (const x of [11, 20]) f.line(x, x === 20 ? 0 : 2, x, 17, R.wood.d);
     f.line(22, 15, 30, 10, R.wood.d);
@@ -709,7 +716,7 @@ module.exports = {
     for (let x = 12; x < 26; x += 4) f.set(x, 21, OUTLINE);
     f.rect(4, 14, 3, 2, R.straw.l);
     waves(f, 25, 4, 27);
-  },
+  }),
   freight: (f) => {
     // hull
     f.poly(

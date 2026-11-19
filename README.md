@@ -24,7 +24,8 @@ smaller originals.
 - 11 terrains, each with all 16 ways of joining its neighbours. Mountain ranges, hills, forests and jungle run on from
   tile to tile, and edges against other terrain are ragged rather than square.
 - Coast, rivers and river mouths, 23 specials, roads, railroads, irrigation, mines, pollution and fog.
-- The city, hut, fort and fortified overlay (also drawn over a walled city), citizens (angry ones too), interface icons and cursors.
+- The city, hut, fort and fortified overlay (also drawn over a walled city), citizens (angry ones too), interface
+  icons and cursors.
 
 ![Units](previews/units.png)
 
