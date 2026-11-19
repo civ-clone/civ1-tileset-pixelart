@@ -71,12 +71,14 @@ for (const d of DIRS) {
   for (let i = 0; i <= steps * 2; i++) {
     const x = cx + (ux * i) / 2,
       y = cy + (uy * i) / 2;
-    road.ellipse(x, y, 2.3 * wide(x, y), 2.3 * wide(x, y), '#8a6a3c');
+    const k = wide(x, y);
+    road.ellipse(x, y, 2.3 * k, 2.3 * k, '#8a6a3c');
   }
   for (let i = 0; i <= steps * 2; i++) {
     const x = cx + (ux * i) / 2,
       y = cy + (uy * i) / 2;
-    road.ellipse(x, y, 1.4 * wide(x, y), 1.4 * wide(x, y), '#b89460');
+    const k = wide(x, y);
+    road.ellipse(x, y, 1.4 * k, 1.4 * k, '#b89460');
   }
   for (let i = 0; i <= steps * 2; i++) {
     const x = cx + (ux * i) / 2,

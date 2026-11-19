@@ -492,7 +492,10 @@ const riverMouth = (d) => {
         py = y + 0.5 - my,
         along = (px * ax + py * ay) / al,
         across = Math.abs(px * ay - py * ax) / al,
-        w = 2.8 + Math.max(0, along - 2) * 0.35 + (lnoise(x, y, 8, 6, 70) - 0.5) * 1.4,
+        w =
+          2.8 +
+          Math.max(0, along - 2) * 0.35 +
+          (lnoise(x, y, 8, 6, 70) - 0.5) * 1.4 * Math.min(1, Math.max(0, along) / 3),
         fade = (along - 4) / 8;
       if (along < -1 || across > w + 1.5) continue;
       if (across > w) {

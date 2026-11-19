@@ -415,9 +415,14 @@ const coastQuarter = (q, bits) => {
   for (let y = 0; y < H; y++)
     for (let x = 0; x < W; x++) {
       if (!owns(x, y) || quarterOf(x, y) !== q) continue;
-      // A smooth minimum, so where two shores meet in a bay the beach curves round rather than meeting in a point; and a
+      // A smooth minimum of the edges' shores, so where two meet in a bay the beach curves round rather than meeting in
+      //  a point; a corner's own shore by the plain minimum, so a straight shore doesn't thicken at every corner. And a
       //  broad swell as well as a fine one, so the beach widens and narrows along the shore.
-      const dist = land.length ? -2 * Math.log(land.reduce((s, e) => s + Math.exp(-shoreDist(x, y, e) / 2), 0)) : 99,
+      const edges = land.filter((e) => DIRS.includes(e)),
+        dist = Math.min(
+          edges.length ? -2 * Math.log(edges.reduce((s, e) => s + Math.exp(-shoreDist(x, y, e) / 2), 0)) : 99,
+          ...land.filter((e) => !DIRS.includes(e)).map((e) => shoreDist(x, y, e))
+        ),
         n = lnoise(x, y, 16, 4, 60) * 0.9 + lnoise(x, y, 4, 1, 64) * 2.2 - 0.6;
       if (dist < 1 + n) t.set(x, y, lhash(x, y, 61) > 0.85 ? '#c8b06a' : '#e4d090');
       else if (dist < 1.8 + n) t.set(x, y, '#b8a46a');
@@ -438,8 +443,9 @@ for (const q of Object.keys(QUARTER))
 const riverMouth = (d) => {
   const t = new Spr(W, H),
     [mx, my] = MID[d],
+    // Measured with heights stretched by 4/3, as the river's brush is 3/4 as tall as it is wide, axis and pixel alike.
     ax = CENTRE[0] - mx,
-    ay = CENTRE[1] - my,
+    ay = (CENTRE[1] - my) * (4 / 3),
     al = Math.hypot(ax, ay);
   for (let y = 0; y < H; y++)
     for (let x = 0; x < W; x++) {
@@ -448,11 +454,14 @@ const riverMouth = (d) => {
         py = (y + 0.5 - my) * (4 / 3),
         along = (px * ax + py * ay) / al,
         across = Math.abs(px * ay - py * ax) / al,
-        w = 3 + Math.max(0, along - 2) * 0.35 + (lnoise(x, y, 16, 4, 70) - 0.5) * 1.6,
+        w =
+          3 +
+          Math.max(0, along - 2) * 0.35 +
+          (lnoise(x, y, 16, 4, 70) - 0.5) * 1.6 * Math.min(1, Math.max(0, along) / 3),
         fade = (along - 5) / 9;
       if (along < -1 || across > w + 1.5) continue;
       if (across > w) {
-        if (along < 3) t.set(x, y, lhash(x, y, 72) > 0.5 ? '#b8a46a' : '#8c7a48');
+        if (along < 3) t.set(x, y, lhash(x, y, 72) > 0.5 ? '#b8a46a' : BANK);
         continue;
       }
       if (fade > 0 && dither(x, y) < fade) continue;
@@ -465,7 +474,7 @@ const riverMouth = (d) => {
           ? '#a8c8f4'
           : fade > 0.4
           ? '#3e74c4'
-          : pick(lnoise(x, y, 16, 4, 200), ['#3c6cc4', '#4a7ad0', '#5888da'])
+          : pick(lnoise(x, y, 16, 4, 200), WATER)
       );
     }
   return t;

@@ -503,11 +503,14 @@ const coastTile = (landDirs) => {
   const t = new Spr();
   for (let y = 0; y < S; y++)
     for (let x = 0; x < S; x++) {
-      // A smooth minimum, so where two shores meet in a bay the beach curves round; and a broad swell as well as a fine
-      //  one, so the beach widens and narrows along the shore.
-      const d = landDirs.length
-          ? -2 * Math.log(landDirs.reduce((s, dir) => s + Math.exp(-distTo(x, y, dir) / 2), 0))
-          : 99,
+      // A smooth minimum of the edges' shores, so where two meet in a bay the beach curves round; a corner's own shore,
+      //  a point, by the plain minimum, so a straight shore doesn't thicken at every corner. And a broad swell as well
+      //  as a fine one, so the beach widens and narrows along the shore.
+      const edges = landDirs.filter((dir) => dir.length === 1),
+        d = Math.min(
+          edges.length ? -2 * Math.log(edges.reduce((s, dir) => s + Math.exp(-distTo(x, y, dir) / 2), 0)) : 99,
+          ...landDirs.filter((dir) => dir.length === 2).map((dir) => distTo(x, y, dir))
+        ),
         n = pnoise(x, y, 4, 60) * 1 + pnoise(x, y, 16, 64) * 2.4 - 0.6;
       if (d < 1.2 + n) t.set(x, y, h1(x, y, 61) > 0.85 ? '#c8b06a' : '#e4d090');
       else if (d < 2.2 + n) t.set(x, y, '#b8a46a');
@@ -532,13 +535,31 @@ terrainSprites.coast_sprite = coastStrip;
 //  edge, widening as it goes, then fading into the sea's water through an ordered dither, with a little wet sand at the
 //  shore. The same 4 × 4 ordered dither as the fog's.
 const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
+// Where the river crosses the edge `dir` of the ocean tile: the middle and half the width of the water in the river
+//  tile's own edge row beyond it, as its channel towards this tile (the opposite edge) draws it.
+const OPPOSITE = { n: 's', s: 'n', e: 'w', w: 'e' };
+const crossing = (dir) => {
+  const river = riverSprite([OPPOSITE[dir]]),
+    at = (i) =>
+      dir === 'n'
+        ? river.get(i, S - 1)
+        : dir === 's'
+        ? river.get(i, 0)
+        : dir === 'w'
+        ? river.get(S - 1, i)
+        : river.get(0, i),
+    wet = [...Array(S).keys()].filter((i) => at(i) && at(i) !== BANK && at(i) !== '#6e6a34');
+  return { middle: (wet[0] + wet[wet.length - 1] + 1) / 2, half: (wet[wet.length - 1] - wet[0] + 1) / 2 };
+};
 const riverMouth = (dir) => {
-  const t = new Spr();
+  const t = new Spr(),
+    { middle, half } = crossing(dir);
   for (let y = 0; y < S; y++)
     for (let x = 0; x < S; x++) {
       const along = dir === 'n' ? y : dir === 's' ? S - 1 - y : dir === 'w' ? x : S - 1 - x,
-        across = Math.abs((dir === 'n' || dir === 's' ? x : y) + 0.5 - 16),
-        w = 2.8 + Math.max(0, along - 2) * 0.35 + (pnoise(x, y, 4, 70) - 0.5) * 1.4,
+        across = Math.abs((dir === 'n' || dir === 's' ? x : y) + 0.5 - middle),
+        // As wide as the channel where it crosses, the noise coming in over the first few pixels so the two meet.
+        w = half + Math.max(0, along - 2) * 0.35 + (pnoise(x, y, 4, 70) - 0.5) * 1.4 * Math.min(1, along / 3),
         fade = (along - 4) / 8;
       if (across > w + 1.5) continue;
       if (across > w) {
@@ -955,12 +976,14 @@ for (const dir of ['n', 'ne', 'e', 'se', 's', 'sw', 'w', 'nw']) {
   for (let i = 0; i <= steps * 2; i++) {
     const x = 15.5 + (dx * i) / 2,
       y = 15.5 + (dy * i) / 2;
-    road.ellipse(x + 0.5, y + 0.5, 2.3 * wide(x, y), 2.3 * wide(x, y), '#8a6a3c');
+    const k = wide(x, y);
+    road.ellipse(x + 0.5, y + 0.5, 2.3 * k, 2.3 * k, '#8a6a3c');
   }
   for (let i = 0; i <= steps * 2; i++) {
     const x = 15.5 + (dx * i) / 2,
       y = 15.5 + (dy * i) / 2;
-    road.ellipse(x + 0.5, y + 0.5, 1.4 * wide(x, y), 1.4 * wide(x, y), '#b89460');
+    const k = wide(x, y);
+    road.ellipse(x + 0.5, y + 0.5, 1.4 * k, 1.4 * k, '#b89460');
   }
   {
     const px = -dy,
