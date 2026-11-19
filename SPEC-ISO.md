@@ -53,7 +53,7 @@ a tile is drawn again for a diamond.
 
 As in the square pack ([SPEC.md](SPEC.md)): variants of each terrain's fully joined sprite, keeping a different
 selection of the features wholly inside the tile, and the square pack's flavour pictures, moved to the left of the
-tile's middle, clear of the special.
+tile's middle.
 
 ## Water
 

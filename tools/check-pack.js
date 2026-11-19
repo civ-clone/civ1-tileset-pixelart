@@ -65,6 +65,23 @@ for (const [dir, manifest] of PACKS) {
 
   fs.rmSync(fresh, { recursive: true, force: true });
 
+  // Every variant and flavour picture the descriptor counts is a sprite it lists and the pack draws, so the game never
+  //  picks one that isn't there; a terrain counted by an engine name is drawn under its word in `names.terrain`.
+  const desc = JSON.parse(fs.readFileSync(path.join(root, manifest), 'utf8')),
+    listed = [...desc.assets.required, ...desc.assets.optional];
+  for (const field of ['variants', 'flavour']) {
+    const pictures = desc.families.terrain[field];
+    if (!pictures) continue;
+    for (const [terrain, count] of Object.entries(pictures.counts))
+      for (let n = 1; n <= count; n++) {
+        const name = pictures.sprite
+          .replace('{terrain}', desc.names.terrain[terrain] ?? terrain.toLowerCase())
+          .replace('{variant}', n);
+        if (!listed.includes(name) || !a.includes(`${name}.png`))
+          problems.push(`families.terrain.${field}.counts.${terrain} is ${count}, but there is no ${name}`);
+      }
+  }
+
   if (problems.length) {
     console.error(`${dir} is not what the code draws (run npm run build):\n  ${problems.join('\n  ')}`);
     failed = true;

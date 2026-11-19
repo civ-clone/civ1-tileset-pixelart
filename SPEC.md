@@ -123,9 +123,9 @@ stable hash of the square's position (`counts` says how many each terrain has, b
   inside the tile, and fewer of them. Features that cross into a neighbour are the same as in the usual sprite, so a
   variant meets its neighbours as the usual one does. A variant identical to the usual sprite, or to another, is left
   out, so some terrains have fewer.
-- **{terrain}_flavour_{n}:** a small picture drawn over the fully joined terrain, on about 30% of such squares. Each is
-  drawn left of the middle, clear of the lower right where a special goes, and none is an animal or a crop, so none
-  reads as a special.
+- **{terrain}_flavour_{n}:** a small picture drawn over the fully joined terrain, on about 30% of such squares, and
+  never on a square with a special or a hut, which the game leaves it off. Each is drawn left of the middle, and none
+  is an animal or a crop, so none reads as a special.
 
 | Terrain | Flavour |
 | --- | --- |
@@ -136,7 +136,7 @@ stable hash of the square's position (`counts` says how many each terrain has, b
 | arctic | A dark crevasse in the ice; a snow drift |
 | swamp | Lily pads on a pool of still water; a dead stump |
 | forest | A fallen log; a ring of red toadstools |
-| jungle | A great red flower; a vine-covered rock |
+| jungle | A great purple flower; a vine-covered rock |
 | hills | A rocky outcrop; a cairn of stacked stones |
 | mountains | A snowfield on the slope; a scree slide |
 

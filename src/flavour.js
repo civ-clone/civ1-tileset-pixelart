@@ -1,6 +1,6 @@
 // Flavour: small pictures drawn over a terrain where it is fully joined, on some squares of a larger stretch of it, as
-//  SPEC.md describes. Each is drawn on a 32px canvas, left of the middle and clear of the lower right, where a
-//  special goes, and none is an animal or a crop, so none reads as a special. Each terrain's are in its own list,
+//  SPEC.md describes; the game leaves it off a square with a special or a hut. Each is drawn on a 32px canvas, left
+//  of the middle, and none is an animal or a crop, so none reads as a special. Each terrain's are in its own list,
 //  `terrain/{terrain}_flavour_{n}` from 1.
 const { ramp, R, Spr } = require('./lib');
 
@@ -164,7 +164,7 @@ const flavours = {
     },
   ],
   jungle: [
-    // a great red flower
+    // a great purple flower, unlike the fruit special's red and orange
     (s) => {
       for (const [dx, dy] of [
         [-3, 0],
@@ -174,7 +174,7 @@ const flavours = {
         [-2, -1.5],
         [2, 1.5],
       ])
-        s.ellipse(10 + dx, 15 + dy, 2, 1.4, '#c0302a');
+        s.ellipse(10 + dx, 15 + dy, 2, 1.4, '#a040c0');
       s.ellipse(10, 15, 1.6, 1.2, '#f4e468');
     },
     // a vine-covered rock
