@@ -9,6 +9,7 @@ const { terrainSprites, specials, imp, fog } = require('./terrain');
 const units = require('./units');
 const combat = require('./combat');
 const misc = require('./misc');
+const { flavours } = require('./flavour');
 
 const [out, manifestPath] = process.argv.slice(2);
 const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
@@ -18,6 +19,7 @@ else if (manifest.grid === 'staggered-iso') Object.assign(sprites, require('./is
 else {
   for (const [k, s] of Object.entries(terrainSprites)) sprites[`terrain/${k}`] = s;
   for (const [k, s] of Object.entries(specials)) sprites[`terrain/${k}`] = s;
+  for (const [k, s] of Object.entries(flavours)) sprites[`terrain/${k}`] = s;
   for (const [k, s] of Object.entries(imp)) sprites[`improvements/${k}`] = s;
   for (const [k, s] of Object.entries(fog)) sprites[`map/${k}`] = s;
   for (const [k, f] of Object.entries(units)) sprites[`units/${k}`] = unit(f);

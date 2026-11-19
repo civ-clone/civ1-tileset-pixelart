@@ -938,7 +938,46 @@
       "units/destroyer",
       "units/missilecruiser",
       "units/galleon",
-      "units/freight"
+      "units/freight",
+      "terrain/grassland_v1",
+      "terrain/grassland_v2",
+      "terrain/grassland_flavour_1",
+      "terrain/grassland_flavour_2",
+      "terrain/plains_v1",
+      "terrain/plains_flavour_1",
+      "terrain/plains_flavour_2",
+      "terrain/desert_v1",
+      "terrain/desert_v2",
+      "terrain/desert_flavour_1",
+      "terrain/desert_flavour_2",
+      "terrain/tundra_v1",
+      "terrain/tundra_v2",
+      "terrain/tundra_flavour_1",
+      "terrain/tundra_flavour_2",
+      "terrain/arctic_v1",
+      "terrain/arctic_v2",
+      "terrain/arctic_flavour_1",
+      "terrain/arctic_flavour_2",
+      "terrain/swamp_v1",
+      "terrain/swamp_v2",
+      "terrain/swamp_flavour_1",
+      "terrain/swamp_flavour_2",
+      "terrain/forest_v1",
+      "terrain/forest_v2",
+      "terrain/forest_flavour_1",
+      "terrain/forest_flavour_2",
+      "terrain/jungle_v1",
+      "terrain/jungle_v2",
+      "terrain/jungle_flavour_1",
+      "terrain/jungle_flavour_2",
+      "terrain/hills_v1",
+      "terrain/hills_v2",
+      "terrain/hills_flavour_1",
+      "terrain/hills_flavour_2",
+      "terrain/mountains_v1",
+      "terrain/mountains_v2",
+      "terrain/mountains_flavour_1",
+      "terrain/mountains_flavour_2"
     ],
     "ui": [
       "city/",
@@ -973,6 +1012,39 @@
           "River",
           "@water"
         ]
+      },
+      "variants": {
+        "sprite": "terrain/{terrain}_v{variant}",
+        "counts": {
+          "Grassland": 2,
+          "Plains": 1,
+          "Desert": 2,
+          "Tundra": 2,
+          "Arctic": 2,
+          "Glacier": 2,
+          "Swamp": 2,
+          "Forest": 2,
+          "Jungle": 2,
+          "Hills": 2,
+          "Mountains": 2
+        }
+      },
+      "flavour": {
+        "sprite": "terrain/{terrain}_flavour_{variant}",
+        "counts": {
+          "Grassland": 2,
+          "Plains": 2,
+          "Desert": 2,
+          "Tundra": 2,
+          "Arctic": 2,
+          "Glacier": 2,
+          "Swamp": 2,
+          "Forest": 2,
+          "Jungle": 2,
+          "Hills": 2,
+          "Mountains": 2
+        },
+        "chance": 0.3
       }
     },
     "coast": {

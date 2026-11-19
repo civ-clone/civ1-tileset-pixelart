@@ -3,6 +3,7 @@
 const { OUTLINE, KEY_L, KEY_B, R, Spr } = require('./lib');
 const { specials, imp } = require('./terrain');
 const misc = require('./misc');
+const { flavours } = require('./flavour');
 const units = require('./units');
 const combat = require('./combat');
 const {
@@ -34,6 +35,8 @@ const out = { ...terrain };
 // ---------- specials ----------
 // Lower right on the square tile, moved in and down a little to sit inside the hex.
 for (const [k, s] of Object.entries(specials)) out[`terrain/${k}`] = k === 'shield' ? s : onHex(s, -2, 1);
+// Flavour, left of the middle as on the square pack.
+for (const [k, s] of Object.entries(flavours)) out[`terrain/${k}`] = onHex(s, 0, 2);
 
 // ---------- improvements ----------
 // Irrigation: diagonal water channels between earth ridges, inside an earth border 4px in from the hex's edge.

@@ -47,6 +47,12 @@ again for a hexagon.
   neighbour's channel carries on. It bends once and comes in straight at the edge. Rivers also join the sea. An
   isolated river is a small pool.
 
+## Variants and flavour
+
+As in the square pack ([SPEC.md](SPEC.md)): variants of each terrain's fully joined sprite, keeping a different
+selection of the features wholly inside the tile, and the square pack's flavour pictures, moved to the left of the
+tile's middle, clear of the special.
+
 ## Water
 
 - **Ocean:** the square pack's deep blue with short wave crests, each crest kept to its own cell.
