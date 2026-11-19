@@ -33,6 +33,9 @@ a tile is drawn again for a diamond.
   square pack's, in its colours.
   - The fringe's depth is set by the point of the edge it is beside, and near a corner by the corner itself.
   - So where two joined tiles both stop at a third, their fringes meet at the same depth, with no notch.
+  - It wanders in broad, rounded bites as well as small ragged ones, so a stretch of terrain has a soft outline rather
+    than following the diamonds.
+  - Where two edges that both stop meet at a corner, the terrain's own corner is rounded off.
 - **Desert and plains:** their patterns are fitted to the lattice. The desert's dune ripples are 8px apart, so a row is
   two of them. The plains' wheat strokes each keep to their own 4 × 4 cell.
 - **Features:** these are the square pack's drawings (peaks, mounds, trees, palms, reeds, rocks, cacti, ice). The
@@ -55,8 +58,12 @@ a tile is drawn again for a diamond.
     neighbour, and the edge neighbour on the other side (`n` is `nw`, `n`, `ne`), `1` for land.
   - Inside every edge with land beyond, and round a corner with land beyond it, it draws sand, wet sand, a foam line and
     a band of shallow water, on its own quarter only.
+  - The beach widens and narrows in broad swells along the shore, and where two shores meet in a bay it curves round
+    rather than meeting in a point, so the coastline reads as rounded rather than following the diamonds.
   - The descriptor puts them together as named corners, each at the tile's corner.
-- **River mouths:** `river_mouth_{edge}`, on the ocean tile, fresh water fanning out from that edge between sand bars.
+- **River mouths:** `river_mouth_{edge}`, on the ocean tile: the river's own channel, in its colours and at its width
+  where it crosses the edge, carrying on a little way into the sea, widening as it goes, and fading into the sea's water
+  through the lattice's dither, with a little wet sand where it leaves the shore.
 
 ## Other rules' names
 
@@ -74,7 +81,8 @@ shows.
 - **mine, pollution, hut:** the square pack's, moved to the diamond's middle.
 - **road_{dir}, railroad_{dir}:** for all eight neighbours, from the middle to the middle of that edge, or to that
   corner.
-  - A road is a packed-dirt track.
+  - A road is a packed-dirt track. Its width and edges wander a little, by noise on the lattice so neighbouring tiles'
+    roads meet, with darker ruts and the odd stone, so a long road isn't a ruled line.
   - A railroad is two steel rails on wooden sleepers, spaced every 4px counted back from the far end, so neighbouring
     tiles' sleepers line up.
   - Toward the `e` and `w` corners the diamond pinches to a point, and no tile owns its very tip. The rails close in

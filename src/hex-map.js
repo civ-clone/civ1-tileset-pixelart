@@ -5,7 +5,20 @@ const { specials, imp } = require('./terrain');
 const misc = require('./misc');
 const units = require('./units');
 const combat = require('./combat');
-const { W, H, DIRS, MID, CENTRE, owns, edgeDist, edgeNoise, lhash, dither, sprites: terrain } = require('./hex');
+const {
+  W,
+  H,
+  DIRS,
+  MID,
+  CENTRE,
+  owns,
+  edgeDist,
+  edgeNoise,
+  lhash,
+  lnoise,
+  dither,
+  sprites: terrain,
+} = require('./hex');
 
 // A square-pack sprite moved by (dx, dy) onto a hex-sized canvas, keeping only the pixels the hex owns.
 const onHex = (s, dx = 0, dy = 0) => {
@@ -52,12 +65,28 @@ for (const d of DIRS) {
     road = new Spr(W, H),
     rail = new Spr(W, H),
     steps = Math.ceil(len) + 2;
-  for (let i = 0; i <= steps; i++) road.ellipse(cx + ux * i, cy + uy * i, 2.3, 2.3, '#8a6a3c');
-  for (let i = 0; i <= steps; i++) {
-    const x = cx + ux * i,
-      y = cy + uy * i;
-    road.ellipse(x, y, 1.4, 1.4, '#b89460');
-    if (lhash(Math.floor(x), Math.floor(y), 90) > 0.7) road.set(x, y, '#a07e4a');
+  // The track's width and edges wander by noise on the lattice, read where each step of it is, so a neighbour's road
+  //  meets it at the same width; darker ruts run either side of the middle, with the odd stone.
+  const wide = (x, y) => 0.6 + lnoise(x, y, 4, 3, 95) * 0.6 + lnoise(x, y, 16, 12, 97) * 0.3;
+  for (let i = 0; i <= steps * 2; i++) {
+    const x = cx + (ux * i) / 2,
+      y = cy + (uy * i) / 2;
+    road.ellipse(x, y, 2.3 * wide(x, y), 2.3 * wide(x, y), '#8a6a3c');
+  }
+  for (let i = 0; i <= steps * 2; i++) {
+    const x = cx + (ux * i) / 2,
+      y = cy + (uy * i) / 2;
+    road.ellipse(x, y, 1.4 * wide(x, y), 1.4 * wide(x, y), '#b89460');
+  }
+  for (let i = 0; i <= steps * 2; i++) {
+    const x = cx + (ux * i) / 2,
+      y = cy + (uy * i) / 2;
+    for (const side of [-1, 1]) {
+      const rx = x - uy * side,
+        ry = y + ux * side;
+      if (lhash(Math.floor(rx), Math.floor(ry), 91) > 0.4) road.set(rx, ry, '#8e6e42');
+    }
+    if (lhash(Math.floor(x), Math.floor(y), 90) > 0.93) road.set(x, y, '#d8c49a');
   }
   for (let i = 0; i <= steps * 2; i++) {
     const back = len - i / 2;

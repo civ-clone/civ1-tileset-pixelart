@@ -31,6 +31,8 @@ again for a hexagon.
   land base shows through. The grounds are the square pack's, in its colours.
   - The fringe's depth is set by the point of the edge it is beside, and near a corner by the corner itself.
   - So where two joined tiles both stop at a third, their fringes meet at the same depth, with no notch.
+  - It has broad, rounded bites as well as small ragged ones, and where two edges that both stop meet at a corner, the
+    terrain's own corner is rounded off.
 - **Desert and plains:** their patterns are fitted to the lattice. The desert's dune ripples are 9px apart, so a row is
   three of them. The plains' wheat strokes each keep to their own 4 × 3 cell.
 - **Features:** these are the square pack's drawings (peaks, mounds, trees, palms, reeds, rocks, cacti, ice). They sit
@@ -54,7 +56,10 @@ again for a hexagon.
   - Inside every edge with land beyond, it draws sand, wet sand, a foam line and a band of shallow water, on its own
     part of the hex only.
   - The six together make one shore. The descriptor puts them together as named corners at the tile's corner.
-- **River mouths:** `river_mouth_{edge}`, on the ocean tile, fresh water fanning out from that edge between sand bars.
+  - The beach widens and narrows in broad swells along the shore, and curves round where two shores meet in a bay.
+- **River mouths:** `river_mouth_{edge}`, on the ocean tile, the river's own channel, in its colours and at its width where it
+  crosses the edge, carrying on a little way into the sea, widening as it goes, and fading into the sea's water through
+  an ordered dither, with a little wet sand where it leaves the shore.
 
 ## Improvements and map
 
@@ -63,7 +68,8 @@ again for a hexagon.
 - **irrigation:** diagonal water channels between earth ridges, inside an earth border 4px in from the hexagon's edge.
 - **mine, pollution, hut:** the square pack's, 2px lower.
 - **road_{edge}, railroad_{edge}:**
-  - a road is a packed-dirt track from the middle to the middle of that edge;
+  - a road is a packed-dirt track from the middle to the middle of that edge, its width and edges wandering a little by
+    noise on the lattice, with darker ruts and the odd stone;
   - a railroad is two steel rails on wooden sleepers, spaced every 4px counted back from the edge, so neighbouring
     tiles' sleepers line up.
 - **fog_{edge}:** a black fade in from that edge, about 7–12px deep, dithered with the lattice's 4 × 3 table. Its depth

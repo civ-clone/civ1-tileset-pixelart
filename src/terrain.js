@@ -39,8 +39,9 @@ const coverage = (mask, seed) => {
       let v = 1;
       for (const d of DIRS) {
         if (mask.includes(d)) continue;
+        // Small ragged bites and broad, rounded ones.
         const [dist, t] = edge[d](x, y),
-          depth = 2.5 + pnoise(t, DIRS.indexOf(d) * 8, 4, seed) * 4;
+          depth = 1.5 + pnoise(t, DIRS.indexOf(d) * 8, 4, seed) * 2 + pnoise(t, DIRS.indexOf(d) * 8, 16, seed + 9) * 3;
         if (dist < depth) v = 0;
         else if (dist < depth + 1.5 && v) v = 2;
       }
@@ -502,8 +503,12 @@ const coastTile = (landDirs) => {
   const t = new Spr();
   for (let y = 0; y < S; y++)
     for (let x = 0; x < S; x++) {
-      const d = Math.min(...landDirs.map((dir) => distTo(x, y, dir)), 99),
-        n = pnoise(x, y, 4, 60) * 1.6;
+      // A smooth minimum, so where two shores meet in a bay the beach curves round; and a broad swell as well as a fine
+      //  one, so the beach widens and narrows along the shore.
+      const d = landDirs.length
+          ? -2 * Math.log(landDirs.reduce((s, dir) => s + Math.exp(-distTo(x, y, dir) / 2), 0))
+          : 99,
+        n = pnoise(x, y, 4, 60) * 1 + pnoise(x, y, 16, 64) * 2.4 - 0.6;
       if (d < 1.2 + n) t.set(x, y, h1(x, y, 61) > 0.85 ? '#c8b06a' : '#e4d090');
       else if (d < 2.2 + n) t.set(x, y, '#b8a46a');
       else if (d < 3.2 + n) t.set(x, y, h1(x, y, 62) > 0.45 ? '#e8f0fc' : '#7ea4e0');
@@ -523,17 +528,35 @@ for (let c = 0; c < 8; c++)
   }
 terrainSprites.coast_sprite = coastStrip;
 
+// The river's own channel carrying on from an edge into the sea: in its colours and at its width where it crosses the
+//  edge, widening as it goes, then fading into the sea's water through an ordered dither, with a little wet sand at the
+//  shore. The same 4 × 4 ordered dither as the fog's.
+const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
 const riverMouth = (dir) => {
-  const t = new Spr(),
-    [ex, ey] = ends[dir];
+  const t = new Spr();
   for (let y = 0; y < S; y++)
     for (let x = 0; x < S; x++) {
       const along = dir === 'n' ? y : dir === 's' ? S - 1 - y : dir === 'w' ? x : S - 1 - x,
-        across = dir === 'n' || dir === 's' ? x - 15.5 : y - 15.5;
-      const w = 3 + along * 0.55 + pnoise(x, y, 4, 70) * 1.5;
-      if (along > 12 || Math.abs(across) > w) continue;
-      if (Math.abs(across) > w - 1.4 && along < 8) t.set(x, y, '#e0cc8a');
-      else t.set(x, y, along > 9 && (x + y) % 2 ? null : (x * 3 + y) % 7 === 0 ? '#a8c8f4' : '#4a80d4');
+        across = Math.abs((dir === 'n' || dir === 's' ? x : y) + 0.5 - 16),
+        w = 2.8 + Math.max(0, along - 2) * 0.35 + (pnoise(x, y, 4, 70) - 0.5) * 1.4,
+        fade = (along - 4) / 8;
+      if (across > w + 1.5) continue;
+      if (across > w) {
+        if (along < 3) t.set(x, y, h1(x, y, 72) > 0.5 ? '#b8a46a' : BANK);
+        continue;
+      }
+      if (fade > 0 && BAYER[(y % 4) * 4 + (x % 4)] / 16 < fade) continue;
+      t.set(
+        x,
+        y,
+        across > w - 1 && along < 4
+          ? '#2c54a4'
+          : (x + 2 * y) % 7 === 0 && h1(x, y, 71) > 0.4
+          ? '#a8c8f4'
+          : fade > 0.4
+          ? '#3e74c4'
+          : pick(pnoise(x, y, 4, 200), WATER)
+      );
     }
   return t;
 };
@@ -926,16 +949,33 @@ for (const dir of ['n', 'ne', 'e', 'se', 's', 'sw', 'w', 'nw']) {
     road = new Spr(),
     rail = new Spr();
   const steps = 18;
-  for (let i = 0; i <= steps; i++) {
-    const x = 15.5 + dx * i,
-      y = 15.5 + dy * i;
-    road.ellipse(x + 0.5, y + 0.5, 2.3, 2.3, '#8a6a3c');
+  // The track's width and edges wander by noise that repeats every tile, read where each step of it is, so a
+  //  neighbour's road meets it at the same width; darker ruts run either side of the middle, with the odd stone.
+  const wide = (x, y) => 0.6 + pnoise(x, y, 8, 95) * 0.6 + pnoise(x, y, 2, 97) * 0.3;
+  for (let i = 0; i <= steps * 2; i++) {
+    const x = 15.5 + (dx * i) / 2,
+      y = 15.5 + (dy * i) / 2;
+    road.ellipse(x + 0.5, y + 0.5, 2.3 * wide(x, y), 2.3 * wide(x, y), '#8a6a3c');
   }
-  for (let i = 0; i <= steps; i++) {
-    const x = 15.5 + dx * i,
-      y = 15.5 + dy * i;
-    road.ellipse(x + 0.5, y + 0.5, 1.4, 1.4, '#b89460');
-    if (h1(Math.round(x), Math.round(y), 90) > 0.7) road.set(x, y, '#a07e4a');
+  for (let i = 0; i <= steps * 2; i++) {
+    const x = 15.5 + (dx * i) / 2,
+      y = 15.5 + (dy * i) / 2;
+    road.ellipse(x + 0.5, y + 0.5, 1.4 * wide(x, y), 1.4 * wide(x, y), '#b89460');
+  }
+  {
+    const px = -dy,
+      py = dx,
+      nl = Math.hypot(px, py);
+    for (let i = 0; i <= steps * 2; i++) {
+      const x = 15.5 + (dx * i) / 2,
+        y = 15.5 + (dy * i) / 2;
+      for (const side of [-1, 1]) {
+        const rx = Math.round(x + (px / nl) * side),
+          ry = Math.round(y + (py / nl) * side);
+        if (h1(rx, ry, 91) > 0.4 && road.get(rx, ry)) road.set(rx, ry, '#8e6e42');
+      }
+      if (h1(Math.round(x), Math.round(y), 90) > 0.93) road.set(x, y, '#d8c49a');
+    }
   }
   // sleepers every 4px measured from the edge, so neighbouring tiles' sleepers line up
   const px = -dy,
@@ -960,7 +1000,6 @@ for (const dir of ['n', 'ne', 'e', 'se', 's', 'sw', 'w', 'nw']) {
 }
 
 // ---------- fog ----------
-const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
 const fog = {};
 for (const d of DIRS) {
   const t = new Spr();

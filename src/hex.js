@@ -250,28 +250,45 @@ const SEEDS = Object.fromEntries(Object.entries(defs).map(([k, d]) => [k, d.seed
 //  itself, blending into the edge's own over the next 2px, so where two neighbouring tiles both cut back from a third,
 //  they meet at the same depth on their shared edge, with no notch. (Their pixels by the shared edge are all beside the
 //  corner, or past it.)
-const edgeNoise = (x, y, d, seed) => {
+//  (ns, nt) are the noise's cells per lattice step: the default's are about 2px along an edge, (4, 3)'s about 8px.
+const edgeNoise = (x, y, d, seed, ns = 16, nt = 12) => {
   const { along, len } = edgeDist(x, y, d),
     [[ax, ay], [bx, by]] = EDGE[d],
-    at = (a) => lnoise(ax + ((bx - ax) * a) / len - 0.5, ay + ((by - ay) * a) / len - 0.5, 16, 12, seed),
+    at = (a) => lnoise(ax + ((bx - ax) * a) / len - 0.5, ay + ((by - ay) * a) / len - 0.5, ns, nt, seed),
     end = along < len / 2 ? 0 : len,
     w = smoothstep(Math.max(0, Math.min(1, (Math.min(along, len - along) - 1) / 2)));
   return at(end) + (at(Math.max(0, Math.min(len, along))) - at(end)) * w;
 };
 // Where a terrain's ground is drawn: the hex, less a ragged fringe along every edge whose neighbour is not the same
-//  terrain, where the land base shows through. The fringe (soft band included) is at most 8px deep.
+//  terrain, where the land base shows through. The fringe (soft band included) is at most 8px deep, with broad,
+//  rounded bites as well as small ragged ones, and where two unjoined edges meet, the terrain's corner is rounded off.
+const ROUND = 4;
 const coverage = (mask, seed) => {
   const c = new Array(W * H).fill(0);
   for (let y = 0; y < H; y++)
     for (let x = 0; x < W; x++) {
       if (!owns(x, y)) continue;
       let v = 1;
+      const past = {};
       for (const d of DIRS) {
         if (mask.includes(d)) continue;
         const { dist } = edgeDist(x, y, d),
-          depth = 2.5 + edgeNoise(x, y, d, seed) * 4;
+          depth = 1.5 + edgeNoise(x, y, d, seed) * 2 + edgeNoise(x, y, d, seed + 9, 4, 3) * 3;
+        past[d] = dist - depth;
         if (dist < depth) v = 0;
         else if (dist < depth + 1.5 && v) v = 2;
+      }
+      for (const [i, a] of DIRS.entries()) {
+        const b = DIRS[(i + 1) % 6];
+        if (
+          v &&
+          past[a] !== undefined &&
+          past[b] !== undefined &&
+          past[a] < ROUND &&
+          past[b] < ROUND &&
+          Math.hypot(ROUND - past[a], ROUND - past[b]) > ROUND
+        )
+          v = 0;
       }
       c[y * W + x] = v === 2 ? (lhash(x, y, seed + 3) < 0.5 ? 0 : 2) : v;
     }
@@ -440,8 +457,12 @@ const coastWedge = (d, bits) => {
   for (let y = 0; y < H; y++)
     for (let x = 0; x < W; x++) {
       if (!owns(x, y) || wedge(x, y) !== d) continue;
-      const dist = Math.min(...land.map((e) => edgeDist(x, y, e).dist), 99),
-        n = lnoise(x, y, 8, 6, 60) * 1.6;
+      // A smooth minimum, so where two shores meet in a bay the beach curves round; and a broad swell as well as a fine
+      //  one, so the beach widens and narrows along the shore.
+      const dist = land.length
+          ? -2 * Math.log(land.reduce((s, e) => s + Math.exp(-edgeDist(x, y, e).dist / 2), 0))
+          : 99,
+        n = lnoise(x, y, 8, 6, 60) * 1 + lnoise(x, y, 2, 2, 64) * 2.4 - 0.6;
       if (dist < 1.2 + n) t.set(x, y, lhash(x, y, 61) > 0.85 ? '#c8b06a' : '#e4d090');
       else if (dist < 2.2 + n) t.set(x, y, '#b8a46a');
       else if (dist < 3.2 + n) t.set(x, y, lhash(x, y, 62) > 0.45 ? '#e8f0fc' : '#7ea4e0');
@@ -456,7 +477,8 @@ for (const d of DIRS)
     sprites[`terrain/coast_${d}_${bits}`] = coastWedge(d, bits);
   }
 
-// Fresh water fanning out from an edge onto the sea, between sand bars.
+// The river's own channel carrying on from an edge into the sea: in its colours and at its width where it crosses the
+//  edge, widening as it goes, then fading into the sea's water through the dither, with a little wet sand at the shore.
 const riverMouth = (d) => {
   const t = new Spr(W, H),
     [mx, my] = MID[d],
@@ -469,11 +491,26 @@ const riverMouth = (d) => {
       const px = x + 0.5 - mx,
         py = y + 0.5 - my,
         along = (px * ax + py * ay) / al,
-        across = (px * ay - py * ax) / al,
-        w = 3 + along * 0.55 + lnoise(x, y, 8, 6, 70) * 1.5;
-      if (along < 0 || along > 12 || Math.abs(across) > w) continue;
-      if (Math.abs(across) > w - 1.4 && along < 8) t.set(x, y, '#e0cc8a');
-      else t.set(x, y, along > 9 && dither(x, y) >= 0.5 ? null : glint(x, y, 71) ? '#a8c8f4' : '#4a80d4');
+        across = Math.abs(px * ay - py * ax) / al,
+        w = 2.8 + Math.max(0, along - 2) * 0.35 + (lnoise(x, y, 8, 6, 70) - 0.5) * 1.4,
+        fade = (along - 4) / 8;
+      if (along < -1 || across > w + 1.5) continue;
+      if (across > w) {
+        if (along < 3) t.set(x, y, lhash(x, y, 72) > 0.5 ? '#b8a46a' : BANK);
+        continue;
+      }
+      if (fade > 0 && dither(x, y) < fade) continue;
+      t.set(
+        x,
+        y,
+        across > w - 1 && along < 4
+          ? '#2c54a4'
+          : glint(x, y, 71)
+          ? '#a8c8f4'
+          : fade > 0.4
+          ? '#3e74c4'
+          : pick(lnoise(x, y, 8, 6, 200), WATER)
+      );
     }
   return t;
 };

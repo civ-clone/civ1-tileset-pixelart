@@ -20,6 +20,7 @@ const {
   edgeDist,
   edgeNoise,
   lhash,
+  lnoise,
   dither,
   sprites: terrain,
 } = require('./iso');
@@ -77,12 +78,30 @@ for (const d of ALL) {
     road = new Spr(W, H),
     rail = new Spr(W, H),
     steps = Math.ceil(len) + 2;
-  for (let i = 0; i <= steps; i++) road.ellipse(cx + ux * i, cy + uy * i, 2.6, 1.8, '#8a6a3c');
-  for (let i = 0; i <= steps; i++) {
-    const x = cx + ux * i,
-      y = cy + uy * i;
-    road.ellipse(x, y, 1.6, 1, '#b89460');
-    if (lhash(Math.floor(x), Math.floor(y), 90) > 0.7) road.set(x, y, '#a07e4a');
+  // The track's width and edges wander by noise on the lattice, read where each step of it is, so a neighbour's road
+  //  meets it at the same width; darker ruts run either side of the middle, with the odd stone.
+  const wide = (x, y) => 0.6 + lnoise(x, y, 8, 2, 95) * 0.6 + lnoise(x, y, 32, 8, 97) * 0.3;
+  for (let i = 0; i <= steps * 2; i++) {
+    const x = cx + (ux * i) / 2,
+      y = cy + (uy * i) / 2,
+      k = wide(x, y);
+    road.ellipse(x, y, 2.6 * k, 1.8 * k, '#8a6a3c');
+  }
+  for (let i = 0; i <= steps * 2; i++) {
+    const x = cx + (ux * i) / 2,
+      y = cy + (uy * i) / 2,
+      k = wide(x, y);
+    road.ellipse(x, y, 1.6 * k, 1 * k, '#b89460');
+  }
+  for (let i = 0; i <= steps * 2; i++) {
+    const x = cx + (ux * i) / 2,
+      y = cy + (uy * i) / 2;
+    for (const side of [-1, 1]) {
+      const rx = x - uy * side * 1.2,
+        ry = y + ux * side * 0.7;
+      if (lhash(Math.floor(rx), Math.floor(ry), 91) > 0.4) road.set(rx, ry, '#8e6e42');
+    }
+    if (lhash(Math.floor(x), Math.floor(y), 90) > 0.93) road.set(x, y, '#d8c49a');
   }
   for (let i = 0; i <= steps * 2; i++) {
     const back = len - i / 2;
