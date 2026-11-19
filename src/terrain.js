@@ -692,6 +692,192 @@ const specials = {
     );
     s.set(15, 21, OUTLINE);
   }),
+  // Civilization II's specials (SPEC.md).
+  buffalo: special((s) => {
+    const r = ramp('#24180e', '#4a3220', '#6c4c30', '#8a6644');
+    s.ball(20, 23, 6.5, 3.6, r);
+    // shaggy hump and head
+    s.ball(24, 20, 4, 3.6, r);
+    s.ball(27.5, 23, 2.6, 2.4, r);
+    s.line(26, 20, 25, 18, '#e0d4b0').line(29, 20, 30, 18, '#e0d4b0');
+    for (const x of [15, 17, 22, 24]) s.line(x, 25, x, 29, r.d);
+    s.line(14, 21, 13, 25, r.d);
+    s.set(28, 22, OUTLINE);
+  }),
+  wheat: special((s) => {
+    const sheaf = (x) => {
+      s.line(x, 30, x, 21, R.straw.d)
+        .line(x - 2, 30, x - 1, 21, R.straw.m)
+        .line(x + 2, 30, x + 1, 21, R.straw.m);
+      s.ball(x, 19, 2.2, 3.4, R.straw);
+      s.set(x - 1, 16, R.straw.h).set(x + 1, 17, R.straw.d);
+      s.line(x - 2, 26, x + 2, 26, R.wood.d);
+    };
+    sheaf(18);
+    sheaf(27);
+    sheaf(22.5);
+  }),
+  fruit: special((s) => {
+    const leaf = ramp('#1a4a14', '#2e7a24', '#4ca036', '#78c850');
+    s.ball(19, 21, 4, 2.4, leaf).ball(27, 20, 4, 2.4, leaf);
+    s.line(16, 21, 22, 21, leaf.d).line(24, 20, 30, 20, leaf.d);
+    for (const [x, y, c] of [
+      [20, 25, R.red],
+      [24, 24, R.fire],
+      [27, 27, R.red],
+      [22, 28, R.fire],
+    ])
+      s.ball(x, y, 2.2, 2.2, c);
+  }),
+  furs: special((s) => {
+    const r = ramp('#3a2414', '#6a4628', '#946a40', '#b88c5c');
+    // a rolled pelt
+    s.ball(20, 24, 6.5, 3.4, r);
+    s.ellipse(14, 24, 1.5, 3, r.d).ellipse(14, 24, 0.8, 1.6, r.l);
+    s.line(16, 22, 24, 22, r.h);
+    // the striped tail hanging from it, kept inside the corner every pack draws specials in
+    s.line(22, 26, 23, 30, r.m, 2);
+    s.set(22, 27, r.d).set(23, 29, r.d);
+  }),
+  iron: special((s) => {
+    const ore = ramp('#4a1a0c', '#8a3418', '#b4542c', '#d8784c');
+    for (const [x, y, r] of [
+      [18, 27, 2.8],
+      [23, 26, 2.4],
+      [20, 23, 2.2],
+    ])
+      s.ball(x, y, r, r * 0.8, ore);
+    // an ingot
+    s.poly(
+      [
+        [24, 28],
+        [30, 28],
+        [29, 25],
+        [25, 25],
+      ],
+      R.steel.m
+    ).bevel(R.steel);
+  }),
+  ivory: special((s) => {
+    // two cream tusks rising from their roots and curving in, so they cross near the tips: yellowed, so they show on ice
+    const tusk = ramp('#7a6438', '#c4a868', '#e4d09c', '#fff4d0');
+    for (const [x0, dir] of [
+      [18, 1],
+      [28, -1],
+    ])
+      for (let i = 0; i <= 12; i++) {
+        const t = i / 12,
+          x = Math.round(x0 + dir * 9 * t * t),
+          y = Math.round(29 - 11 * t);
+        s.rect(x, y, i < 8 ? 2 : 1, 1, i < 3 ? tusk.m : i > 9 ? tusk.h : tusk.l);
+        if (i < 8) s.set(x + 1, y, i < 3 ? tusk.d : tusk.m);
+      }
+  }),
+  peat: special((s) => {
+    const r = ramp('#1c120a', '#3a2614', '#563a20', '#70502e');
+    // cut blocks stacked to dry, each lit along its top and shaded down its right
+    for (const [x, y] of [
+      [16, 26],
+      [21, 26],
+      [26, 26],
+      [18, 22],
+      [23, 22],
+      [20.5, 18],
+    ]) {
+      s.rect(x, y, 5, 4, r.m);
+      s.rect(x, y, 5, 1, r.l)
+        .rect(x + 4, y + 1, 1, 3, r.d)
+        .rect(x, y + 3, 4, 1, r.d);
+    }
+  }),
+  pheasant: special((s) => {
+    const body = ramp('#5a2a0c', '#9a4a18', '#c8702c', '#e89a50');
+    // long barred tail behind
+    s.line(13, 22, 20, 25, body.d, 2);
+    for (let x = 14; x < 20; x += 2) s.set(x, 22 + Math.round((x - 13) * 0.43), R.straw.l);
+    s.ball(23, 25, 4.5, 3, body);
+    s.line(20, 28, 20, 30, R.dark.l).line(24, 28, 24, 30, R.dark.l);
+    // green neck, white ring, red face
+    s.ball(27, 21, 1.8, 2.4, ramp('#0a3a2a', '#1a6a4a', '#30907a', '#60c0a0'));
+    s.line(26, 23, 28, 23, R.white.h);
+    s.rect(27, 19, 2, 2, R.red.m).set(29, 20, R.straw.l);
+  }),
+  silk: special((s) => {
+    const r = ramp('#7a2a5a', '#c04a8a', '#e87ab4', '#ffc4e4');
+    // the bolt
+    s.ball(19, 21, 3.2, 3.2, r);
+    s.ellipse(19, 21, 1.2, 1.2, r.d);
+    // cloth unrolled from it, catching the light
+    s.poly(
+      [
+        [19, 24],
+        [30, 23],
+        [29, 29],
+        [17, 29],
+      ],
+      r.m
+    ).bevel(r);
+    s.line(20, 26, 28, 25, r.h);
+  }),
+  spice: special((s) => {
+    // the sack
+    s.ball(20, 24, 4.5, 5, R.canvas);
+    s.rect(18, 18, 4, 2, R.canvas.d);
+    s.line(18, 20, 22, 20, R.wood.d);
+    // spice spilling out in a heap
+    s.ball(26, 28, 4, 2, R.fire);
+    s.set(25, 27, R.fire.h).set(28, 28, R.red.m);
+    for (const [x, y] of [
+      [23, 29],
+      [29, 27],
+    ])
+      s.rect(x, y, 2, 1, R.wood.d);
+  }),
+  whales: special((s) => {
+    const r = ramp('#2a3440', '#4a5a6a', '#6c8090', '#94a8b8');
+    // the back breaking the water
+    s.ball(19, 26, 6, 2.6, r);
+    // the tail fluke, raised
+    s.line(26, 26, 27, 21, r.m, 2);
+    s.poly(
+      [
+        [24, 20],
+        [27, 21],
+        [30, 19],
+        [29, 22],
+        [26, 23],
+      ],
+      r.m
+    );
+    // a spout of spray
+    s.line(17, 23, 17, 18, '#e8f0fc').set(16, 17, '#e8f0fc').set(18, 17, '#e8f0fc').set(15, 18, '#a8c4f0');
+    s.line(13, 28, 26, 28, '#e8f0fc').line(15, 29, 23, 29, '#a8c4f0');
+  }),
+  wine: special((s) => {
+    const grape = ramp('#2a0a2a', '#5a1a5a', '#8a3a8a', '#b870b8'),
+      leaf = ramp('#1a4a14', '#2e7a24', '#4ca036', '#78c850');
+    // the leaf and stalk
+    s.poly(
+      [
+        [18, 19],
+        [23, 16],
+        [28, 18],
+        [24, 21],
+      ],
+      leaf.m
+    ).bevel(leaf);
+    s.line(23, 17, 23, 21, leaf.d);
+    // the bunch, tapering down
+    for (const [x, y] of [
+      [20, 23],
+      [23, 23],
+      [26, 23],
+      [21.5, 26],
+      [24.5, 26],
+      [23, 29],
+    ])
+      s.ball(x, y, 1.6, 1.6, grape);
+  }),
 };
 
 // ---------- improvements ----------

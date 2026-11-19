@@ -58,6 +58,13 @@ a tile is drawn again for a diamond.
   - The descriptor puts them together as named corners, each at the tile's corner.
 - **River mouths:** `river_mouth_{edge}`, on the ocean tile, fresh water fanning out from that edge between sand bars.
 
+## Other rules' names
+
+The descriptor names what other rules call by another name: Civilization II's Glacier is drawn with the arctic
+sprites, and its River, a feature on any land rather than a terrain of its own (`families.terrain.features`), with the
+river sprites over that land's terrain. The river sprites are only the channel and its banks, so the terrain under them
+shows.
+
 ## Improvements and map
 
 - **specials:** the square pack's, moved from its lower right to just right of the diamond's middle, except the

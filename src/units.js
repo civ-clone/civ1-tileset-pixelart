@@ -1195,3 +1195,6 @@ Object.assign(module.exports, {
     ).bevel(R.red);
   },
 });
+
+// Civilization II's units beyond these (SPEC.md), in a file of their own.
+Object.assign(module.exports, require('./units-civ2'));

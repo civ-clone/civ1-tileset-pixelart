@@ -170,13 +170,15 @@ const sad = () => {
 // ---------- 16×32 citizens ----------
 // Drawn at the size the renderer shows them (`ui.citizen` in tileset.json). They stand 12px apart, so the figure keeps
 //  to the middle 12px and only props reach the edges.
-// mood: 'happy' (arms up, smiling), 'content' (arms down), 'unhappy' (dark, head bowed, hands hanging).
+// mood: 'happy' (arms up, smiling), 'content' (arms down), 'unhappy' (dark, head bowed, hands hanging), 'angry'
+//  (fists raised, brows drawn down, scowling).
 // right: what the right arm does, 'up' or 'down' (defaults to the mood's); hold: optional (s, female) => void drawing
 //  an item in the right hand.
 const person = ({ mood = 'content', female = false, cloth, legs, hair, hold, right }) => {
   const s = new Spr(16, 32);
   const sad = mood === 'unhappy',
-    up = mood === 'happy';
+    angry = mood === 'angry',
+    up = mood === 'happy' || angry;
   right = right || (up ? 'up' : 'down');
   const dy = sad ? 2 : 0,
     hy = 2 + dy;
@@ -242,7 +244,17 @@ const person = ({ mood = 'content', female = false, cloth, legs, hair, hold, rig
   const ey = hy + (sad ? 4 : 3);
   s.set(6, ey, O).set(9, ey, O);
   s.set(8, hy + 4 + (sad ? 1 : 0), skin.d);
-  if (up)
+  if (angry)
+    // brows slanting down to the nose, a pixel above the eyes, so they don't read as a band
+    s.set(5, hy + 1, skin.d)
+      .set(6, hy + 1, O)
+      .set(7, hy + 2, O)
+      .set(9, hy + 2, O)
+      .set(10, hy + 1, O)
+      .rect(7, hy + 6, 2, 1, lip)
+      .set(6, hy + 7, lip)
+      .set(9, hy + 7, lip);
+  else if (up)
     s.set(6, hy + 5, lip)
       .set(9, hy + 5, lip)
       .rect(7, hy + 6, 2, 1, lip);
@@ -315,6 +327,7 @@ const MOODS = {
   happy: { cloth: ramp('#1a5a20', '#38a040', '#70d060', '#a8f088'), legs: R.wood },
   content: { cloth: R.khaki, legs: R.wood },
   unhappy: { cloth: P.grey, legs: R.dark },
+  angry: { cloth: ramp('#4a0c0c', '#7c1a16', '#a8302a', '#c84a3e'), legs: R.dark },
 };
 for (const mood of Object.keys(MOODS))
   for (const g of ['m', 'f'])

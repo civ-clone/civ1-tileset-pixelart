@@ -52,6 +52,29 @@ band of water with white foam.
 | fighter | Single-engine plane from above, nose up, with roundels |
 | bomber | Four-engine plane from above, nose up, wider and heavier than the fighter |
 | nuclear | Missile on a launch angle: white body, red nose cone, fins, exhaust flame |
+| archer | Bowman in a green hooded tunic, drawing a longbow to the right, quiver of arrows on the back |
+| pikeman | Soldier in a steel morion and breastplate, a very long pike held upright and slanting forward |
+| crusader | Rider in a white surcoat with a red cross, on a grey horse facing right, sword raised |
+| elephant | War elephant facing right, with tusks, a red saddle cloth and a rider with a spear |
+| dragoon | Rider in a blue coat and a crested brass helmet, on a horse facing right, carbine on the shoulder |
+| cavalry | Rider in khaki with a slouch hat, on a galloping horse facing right, sabre pointed forward |
+| alpinetrooper | Soldier in white snow gear and goggles with a pack and a coil of rope, ice axe raised |
+| fanatic | Figure in a dark robe and a red headband, rifle raised over the head in both hands |
+| partisan | Figure in a beret and a green jacket, bandolier across the chest, rifle held across the body |
+| paratrooper | Soldier hanging under an open white parachute canopy by its lines |
+| marine | Soldier in a dark green helmet and fatigues standing in the surf, rifle held up |
+| engineer | Worker in a yellow hard hat and orange overalls, a pickaxe over the shoulder |
+| explorer | Figure in a pith helmet and a khaki jacket with a backpack, a walking staff and a telescope |
+| spy | Figure in a belted trench coat with the collar up, a fedora and dark glasses |
+| howitzer | Sand-coloured tracked gun facing right, a big boxy turret and a long, thick barrel raised high |
+| helicopter | Helicopter from the side facing right, rotor blur on top, tail boom and tail rotor, skids |
+| stealthfighter | Black faceted jet from above, nose up, sharply swept wings and two canted fins |
+| stealthbomber | Black flying wing from above, nose up, with a saw-tooth trailing edge |
+| cruisemissile | Slim grey missile flying right on a slight climb, stubby wings and tail fins, a short flame |
+| destroyer | Slim grey warship facing right, one turret forward, a raked funnel, a bow wave |
+| missilecruiser | Grey warship facing right, a block superstructure with a radar mast, box launchers fore and aft |
+| galleon | Big sailing ship facing right, a high gilded stern castle, two masts of square sails and a pennant |
+| freight | Cargo ship facing right, its deck stacked with red, blue and yellow containers, the bridge at the stern |
 
 `combat_1`–`combat_8`: on a transparent tile with no badge, a small flash grows into a fireball of yellow, orange and
 red with sparks, then shrinks inside dark smoke, which turns grey and breaks up as it fades.
@@ -103,6 +126,18 @@ Drawn over the terrain, in the lower right of the tile unless noted.
 | oil | A derrick over a black pool |
 | oasis | A pool under a palm |
 | seal | A grey seal |
+| buffalo | A dark shaggy bison with short horns (plains) |
+| wheat | Three tied golden sheaves of wheat (plains) |
+| fruit | A cluster of red and orange fruits among broad leaves (jungle) |
+| furs | A rolled brown pelt with a striped tail hanging from it (tundra) |
+| iron | A heap of rust-red ore lumps beside a grey ingot (mountains) |
+| ivory | Two curved white tusks, crossed (glacier) |
+| peat | A stack of dark brown cut peat blocks (swamp) |
+| pheasant | A pheasant with a red face, a white neck ring and a long barred tail (forest) |
+| silk | A bolt of shimmering pink cloth, partly unrolled (forest) |
+| spice | A sack spilling orange-red spice, with a few dark pods (swamp) |
+| whales | A whale's grey back breaking the water, its tail fluke raised and a spout of spray (ocean) |
+| wine | A bunch of purple grapes under a vine leaf (hills) |
 
 ## Improvements and map
 
@@ -141,6 +176,7 @@ short dark hair and trousers; women (`_f`) have long blond hair and a dress.
 | city/people_happy_{m,f} | 16 × 32 | Figure in green, both arms up, smiling |
 | city/people_content_{m,f} | 16 × 32 | Figure in khaki, arms down |
 | city/people_unhappy_{m,f} | 16 × 32 | Figure in dark grey, head bowed, arms hanging, frowning |
+| city/people_angry_{m,f} | 16 × 32 | Figure in dark red, both fists raised, brows drawn down, scowling |
 | city/people_tax(_f) | 16 × 32 | Figure in gold, holding a coin up in the right hand |
 | city/people_science(_f) | 16 × 32 | Figure in white and blue, holding a blue flask in front |
 | city/people_luxury(_f) | 16 × 32 | Entertainer in purple and red, strumming a lute |
