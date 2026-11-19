@@ -325,7 +325,44 @@
     "optional": [
       "city/people_tax_f",
       "city/people_science_f",
-      "city/people_luxury_f"
+      "city/people_luxury_f",
+      "city/people_angry_f",
+      "city/people_angry_m",
+      "terrain/buffalo",
+      "terrain/fruit",
+      "terrain/furs",
+      "terrain/iron",
+      "terrain/ivory",
+      "terrain/peat",
+      "terrain/pheasant",
+      "terrain/silk",
+      "terrain/spice",
+      "terrain/whales",
+      "terrain/wheat",
+      "terrain/wine",
+      "units/archer",
+      "units/pikeman",
+      "units/crusader",
+      "units/elephant",
+      "units/dragoon",
+      "units/cavalry",
+      "units/alpinetrooper",
+      "units/fanatic",
+      "units/partisan",
+      "units/paratrooper",
+      "units/marine",
+      "units/engineer",
+      "units/explorer",
+      "units/spy",
+      "units/howitzer",
+      "units/helicopter",
+      "units/stealthfighter",
+      "units/stealthbomber",
+      "units/cruisemissile",
+      "units/destroyer",
+      "units/missilecruiser",
+      "units/galleon",
+      "units/freight"
     ],
     "ui": [
       "city/",
@@ -455,7 +492,13 @@
   "cities": {
     "mode": "box",
     "sprite": "map/city",
-    "walls": { "sprite": "map/fortify", "at": { "x": 1, "y": 1 } },
+    "walls": {
+      "sprite": "map/fortify",
+      "at": {
+        "x": 1,
+        "y": 1
+      }
+    },
     "inset": 1,
     "occupied": "#000",
     "colouring": {

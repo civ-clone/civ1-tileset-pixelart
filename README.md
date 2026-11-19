@@ -1,9 +1,9 @@
 # civ1-tileset-pixelart
 
 An original, royalty-free pixel-art tileset for [civ.one](https://civ.one): every sprite its Civ1 rules need
-(units, terrain, cities, improvements and interface icons) at 32px, with the feel of the early-90s classics and none
-of their art. It comes in three packs: one for the square grid, one for the hexagonal grid
-([below](#the-hexagonal-pack)) and one for the isometric grid ([below](#the-isometric-pack)).
+(units, terrain, cities, improvements and interface icons), and Civ2's units and specials, at 32px, with the feel of
+the early-90s classics and none of their art. It comes in three packs: one for the square grid, one for the hexagonal
+grid ([below](#the-hexagonal-pack)) and one for the isometric grid ([below](#the-isometric-pack)).
 
 ![A map drawn with the pack](previews/map.png)
 
@@ -20,11 +20,11 @@ smaller originals.
 
 ## What's in it
 
-- 28 units on a badge in the player's colour, and 8 combat frames.
+- 51 units on a badge in the player's colour (Civ1's 28 and the 23 more of Civ2's rules), and 8 combat frames.
 - 11 terrains, each with all 16 ways of joining its neighbours. Mountain ranges, hills, forests and jungle run on from
   tile to tile, and edges against other terrain are ragged rather than square.
-- Coast, rivers and river mouths, 11 specials, roads, railroads, irrigation, mines, pollution and fog.
-- The city, hut, fort and fortified overlay (also drawn over a walled city), citizens, interface icons and cursors.
+- Coast, rivers and river mouths, 23 specials, roads, railroads, irrigation, mines, pollution and fog.
+- The city, hut, fort and fortified overlay (also drawn over a walled city), citizens (angry ones too), interface icons and cursors.
 
 ![Units](previews/units.png)
 
