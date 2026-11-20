@@ -103,15 +103,20 @@ soft outline rather than following the squares. Features (peaks, mounds, trees) 
 | jungle | Bright dense green with leaf flecks | Palms and flowering broad-leaf bushes |
 | hills | Olive | Rounded, shaded grassy mounds |
 | mountains | Rocky grey-brown with scree | Peaks with a lit left face, shadowed right face and snow caps |
-| river | (on land) | A blue channel with muddy banks from the centre to each joined edge (rivers also join the sea); a small pool when isolated |
+| river | (on land) | A blue channel with muddy banks to each joined edge (rivers also join the sea), as below |
 
 - **ocean**: deep blue with scattered short wave crests.
 - **coast_sprite**: 8 cells. Each holds, in its four quarters, the coast for that corner's three land neighbours as
   the renderer reads them: sand, wet sand, a foam line and a band of shallow water, all on the ocean side. The beach
   widens and narrows in broad swells along the shore, and curves round where two shores meet in a bay.
+- **river**: the channel crosses the middle of each joined edge at the same width, square on. It runs in one smooth
+  curve between two edges, meandering gently on a straight run, and comes in straight for the first fifth of the way
+  from each edge, so it meets the neighbour's channel exactly. Three or more channels meet in a pool a little off the
+  middle, a lone one ends in a spring, and an isolated river is a small pond. The water is darker along its line, and
+  the bank is wider here and there, with sand and reeds, away from the edges.
 - **river_mouth_{n,e,s,w}**: on the ocean tile, the river's own channel, in its colours and at its width where it
-  crosses the edge, carrying on a little way into the sea, widening as it goes, and fading into the sea's water through
-  an ordered dither, with a little wet sand where it leaves the shore.
+  crosses the edge, cutting through the beach and its foam, then turning the coast's shallow-water colour and fading out
+  through an ordered dither a few pixels into the sea, with a little wet sand where it leaves the shore.
 
 ## Specials
 
