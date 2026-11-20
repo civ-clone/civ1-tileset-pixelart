@@ -454,7 +454,7 @@ const riverMouth = (d) => {
           Math.max(0, along - 2) * 0.25 +
           (lnoise(x, y, 8, 6, 70) - 0.5) * 1.4 * Math.min(1, Math.max(0, along) / 3),
         fade = (along - 2) / 6;
-      if (along < -1 || across > w + 1.5) continue;
+      if (along < -1 || across > w + 1.2) continue;
       if (across > w) {
         if (along < 3) t.set(x, y, lhash(x, y, 72) > 0.5 ? '#b8a46a' : BANK);
         continue;
