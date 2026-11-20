@@ -1,5 +1,13 @@
 // A hexagonal map drawn the way civ.one draws one (land or ocean base, the coast's six wedges, river mouths, terrain
 //  joined over its six edges, improvements), to check the joins: `node tools/preview-hex.js <out.png> [scale]`.
+// Whether terrain `t` joins a neighbour `n`, as the descriptor's `families.terrain.matches` says (by default, only
+//  the same terrain).
+const joinsTo = (desc) => (t, n) => {
+  const cap = (s) => s[0].toUpperCase() + s.slice(1),
+    list = desc.families.terrain.matches[cap(t)];
+  return list ? list.some((m) => (m === '@water' ? n === 'ocean' : m.toLowerCase() === n)) : n === t;
+};
+const joins = joinsTo(require('../tileset-hex.json'));
 const { Spr, png, recolour } = require('../src/lib');
 const { W, ROW, DIRS, named } = require('../src/hex');
 const T = require('../src/hex-map');
@@ -71,8 +79,7 @@ for (let r = 0; r < rows; r++)
       continue;
     }
     put('terrain/land', c, r);
-    const matches = t === 'river' ? (n) => n === 'river' || n === 'ocean' : (n) => n === t;
-    const mask = DIRS.filter((d) => matches(neighbour(c, r, d)));
+    const mask = DIRS.filter((d) => joins(t, neighbour(c, r, d)));
     put(mask.length ? `terrain/${t}_${named(mask)}` : `terrain/${t}`, c, r);
   }
 

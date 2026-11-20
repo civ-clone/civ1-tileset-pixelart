@@ -28,7 +28,7 @@ a tile is drawn again for a diamond.
 
 - **Variants:** each terrain has an isolated sprite and 15 join variants, one for every set of edges whose neighbour is
   the same terrain.
-- **Edges:** along an edge whose neighbour differs, the terrain stops in a ragged fringe at most about 7px deep, where
+- **Edges:** along an edge whose neighbour differs, the terrain stops in a ragged fringe at most about 6px deep, where
   the land base shows through. It is shallower than the hex pack's, as a diamond is only 32px tall. The grounds are the
   square pack's, in its colours.
   - The fringe's depth is set by the point of the edge it is beside, and near a corner by the corner itself.
@@ -37,8 +37,10 @@ a tile is drawn again for a diamond.
     than following the diamonds.
   - Where two edges that both stop meet at a corner, the terrain's own corner is rounded off, broadly, so a lone
     tile of it reads as a patch rather than a diamond.
-  - The terrain fades in over about 2px about the fringe's line, through the lattice's dither, its first pixels a
-    blend of its ground and the land's, so one runs into the other rather than stopping at a line.
+  - The terrain fades in over about 2px about the fringe's line (never in the edge's own pixel), through the lattice's
+    dither, its first pixels a blend of its ground and the land's, so one runs into the other rather than stopping at a
+    line.
+  - The flatter terrains count the sea as joined and run up to the beach, as the square pack's do.
 - **Desert and plains:** their patterns are fitted to the lattice. The desert's dune ripples are 8px apart, so a row is
   two of them. The plains' wheat strokes each keep to their own 4 × 4 cell.
 - **Features:** these are the square pack's drawings (peaks, mounds, trees, palms, reeds, rocks, cacti, ice). The
@@ -72,8 +74,6 @@ tile's middle.
     a band of shallow water, on its own quarter only.
   - The beach widens and narrows in broad swells along the shore, and where two shores meet in a bay it curves round
     rather than meeting in a point, so the coastline reads as rounded rather than following the diamonds.
-  - Its first pixels are the land's grass running out into the sand through the dither, so it has no hard line
-    inland.
   - The descriptor puts them together as named corners, each at the tile's corner.
 - **River mouths:** `river_mouth_{edge}`, on the ocean tile: the river's own channel, in its colours and at its width
   where it crosses the edge, cutting through the beach and its foam, then turning the coast's shallow-water colour and

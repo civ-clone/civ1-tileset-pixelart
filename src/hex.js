@@ -274,7 +274,7 @@ const coverage = (mask, seed) => {
       for (const d of DIRS) {
         if (mask.includes(d)) continue;
         const { dist } = edgeDist(x, y, d),
-          depth = 1.5 + edgeNoise(x, y, d, seed) * 2 + edgeNoise(x, y, d, seed + 9, 4, 3) * 3;
+          depth = 1 + edgeNoise(x, y, d, seed) * 1.5 + edgeNoise(x, y, d, seed + 9, 4, 3) * 2;
         // How far past where the fade starts: half of it before the fringe's line and half after, but never in the
         //  edge's own pixel, so the land always shows there.
         past[d] = dist - Math.max(1, depth - FADE / 2);
@@ -408,30 +408,22 @@ const around = (d) => {
   const i = DIRS.indexOf(d);
   return [DIRS[(i + 5) % 6], d, DIRS[(i + 1) % 6]];
 };
-const SHORE_FADE = 2;
 const coastWedge = (d, bits) => {
   const t = new Spr(W, H),
-    shores = around(d).filter((_, i) => bits[i] === '1');
+    land = around(d).filter((_, i) => bits[i] === '1');
   for (let y = 0; y < H; y++)
     for (let x = 0; x < W; x++) {
       if (!owns(x, y) || wedge(x, y) !== d) continue;
-      // A smooth minimum, so where two shores meet in a bay the beach curves round; and a broad swell as well as a fine
+      // A smooth minimum, so where two land meet in a bay the beach curves round; and a broad swell as well as a fine
       //  one, so the beach widens and narrows along the shore.
-      const dist = shores.length
-          ? -2 * Math.log(shores.reduce((s, e) => s + Math.exp(-edgeDist(x, y, e).dist / 2), 0))
+      const dist = land.length
+          ? -2 * Math.log(land.reduce((s, e) => s + Math.exp(-edgeDist(x, y, e).dist / 2), 0))
           : 99,
-        // The swell, and the same moved out by the grass at the shore for the sand, wet sand and foam; the shallow
-        //  water reaches no further out than it did, so each piece of the coast still meets its neighbours.
-        swell = lnoise(x, y, 8, 6, 60) * 1 + lnoise(x, y, 2, 2, 64) * 2.4 - 0.6,
-        n = swell + SHORE_FADE * 0.8;
-      // The sand runs out of the grass over its first pixels rather than starting at a line.
-      if (dist < SHORE_FADE) {
-        const sand = lhash(x, y, 61) > 0.85 ? '#c8b06a' : '#e4d090';
-        t.set(x, y, softGround(dist / SHORE_FADE, dither(x, y), sand, land(x, y)) ?? land(x, y));
-      } else if (dist < 1.2 + n) t.set(x, y, lhash(x, y, 61) > 0.85 ? '#c8b06a' : '#e4d090');
+        n = lnoise(x, y, 8, 6, 60) * 1 + lnoise(x, y, 2, 2, 64) * 2.4 - 0.6;
+      if (dist < 1.2 + n) t.set(x, y, lhash(x, y, 61) > 0.85 ? '#c8b06a' : '#e4d090');
       else if (dist < 2.2 + n) t.set(x, y, '#b8a46a');
       else if (dist < 3.2 + n) t.set(x, y, lhash(x, y, 62) > 0.45 ? '#e8f0fc' : '#7ea4e0');
-      else if (dist < 6.5 + swell * 1.5)
+      else if (dist < 6.5 + n * 1.5)
         t.set(x, y, dither(x, y) >= 0.5 && dist > 5 + n ? null : lhash(x, y, 63) > 0.92 ? '#8cb0e8' : '#3e74c4');
     }
   return t;

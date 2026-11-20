@@ -4,7 +4,7 @@
 //
 // Every sprite owns exactly the pixels `IsoProjection.pixelToTile` gives its tile (`owns`), and textures repeat on the
 //  grid's lattice (every 64px across, every 16px down with a 32px shift), so tiles meet with no seam on any edge.
-const { OUTLINE, Spr, hash, channel, riverColour, RIVER, BANKS, softGround, clamp01 } = require('./lib');
+const { OUTLINE, Spr, hash, channel, riverColour, RIVER, BANKS, softGround, clamp01, BAYER } = require('./lib');
 const { defs, keepInside, variantsOf } = require('./terrain');
 
 const W = 64,
@@ -87,7 +87,6 @@ const lhash = (x, y, seed) => {
   return hash(a, b, seed);
 };
 // Every period here is a power of two, so a 4 × 4 Bayer table (and even a 1px checker) fits the lattice.
-const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
 const dither = (x, y) => {
   const [xr, yr] = canon(x, y);
   return BAYER[(yr % 4) * 4 + (xr % 4)] / 16;
@@ -241,7 +240,7 @@ const coverage = (mask, seed) => {
       for (const d of DIRS) {
         if (mask.includes(d)) continue;
         const { dist } = edgeDist(x, y, d),
-          depth = 1 + edgeNoise(x, y, d, seed) * 1.6 + edgeNoise(x, y, d, seed + 9, 8, 2) * 3.2;
+          depth = 1 + edgeNoise(x, y, d, seed) * 1.2 + edgeNoise(x, y, d, seed + 9, 8, 2) * 2.2;
         // How far past where the fade starts: half of it before the fringe's line and half after, but never in the
         //  edge's own pixel, so the land always shows there.
         past[d] = dist - Math.max(1, depth - FADE / 2);
@@ -381,33 +380,25 @@ const shoreDist = (x, y, d) => {
   const [vx, vy] = V[d];
   return (Math.abs(x + 0.5 - vx) / 2 + Math.abs(y + 0.5 - vy)) / Math.sqrt(1.25);
 };
-const SHORE_FADE = 1.6;
 const coastQuarter = (q, bits) => {
   const t = new Spr(W, H),
-    shores = CORNERS[q].filter((_, i) => bits[i] === '1');
+    land = CORNERS[q].filter((_, i) => bits[i] === '1');
   for (let y = 0; y < H; y++)
     for (let x = 0; x < W; x++) {
       if (!owns(x, y) || quarterOf(x, y) !== q) continue;
-      // A smooth minimum of the edges' shores, so where two meet in a bay the beach curves round rather than meeting in
+      // A smooth minimum of the edges' land, so where two meet in a bay the beach curves round rather than meeting in
       //  a point; a corner's own shore by the plain minimum, so a straight shore doesn't thicken at every corner. And a
       //  broad swell as well as a fine one, so the beach widens and narrows along the shore.
-      const edges = shores.filter((e) => DIRS.includes(e)),
+      const edges = land.filter((e) => DIRS.includes(e)),
         dist = Math.min(
           edges.length ? -2 * Math.log(edges.reduce((s, e) => s + Math.exp(-shoreDist(x, y, e) / 2), 0)) : 99,
-          ...shores.filter((e) => !DIRS.includes(e)).map((e) => shoreDist(x, y, e))
+          ...land.filter((e) => !DIRS.includes(e)).map((e) => shoreDist(x, y, e))
         ),
-        // The swell, and the same moved out by the grass at the shore for the sand, wet sand and foam; the shallow
-        //  water reaches no further out than it did, so each piece of the coast still meets its neighbours.
-        swell = lnoise(x, y, 16, 4, 60) * 0.9 + lnoise(x, y, 4, 1, 64) * 2.2 - 0.6,
-        n = swell + SHORE_FADE * 0.8;
-      // The sand runs out of the grass over its first pixels rather than starting at a line.
-      if (dist < SHORE_FADE) {
-        const sand = lhash(x, y, 61) > 0.85 ? '#c8b06a' : '#e4d090';
-        t.set(x, y, softGround(dist / SHORE_FADE, dither(x, y), sand, land(x, y)) ?? land(x, y));
-      } else if (dist < 1 + n) t.set(x, y, lhash(x, y, 61) > 0.85 ? '#c8b06a' : '#e4d090');
+        n = lnoise(x, y, 16, 4, 60) * 0.9 + lnoise(x, y, 4, 1, 64) * 2.2 - 0.6;
+      if (dist < 1 + n) t.set(x, y, lhash(x, y, 61) > 0.85 ? '#c8b06a' : '#e4d090');
       else if (dist < 1.8 + n) t.set(x, y, '#b8a46a');
       else if (dist < 2.6 + n) t.set(x, y, lhash(x, y, 62) > 0.45 ? '#e8f0fc' : '#7ea4e0');
-      else if (dist < 5 + swell * 1.3)
+      else if (dist < 5 + n * 1.3)
         t.set(x, y, dither(x, y) >= 0.5 && dist > 4 + n ? null : lhash(x, y, 63) > 0.92 ? '#8cb0e8' : '#3e74c4');
     }
   return t;

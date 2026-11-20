@@ -59,10 +59,10 @@ const coverage = (mask, seed) => {
       for (const d of DIRS) {
         if (mask.includes(d)) continue;
         const [dist, t] = edge[d](x, y),
-          depth = 1.5 + pnoise(t, DIRS.indexOf(d) * 8, 4, seed) * 2 + pnoise(t, DIRS.indexOf(d) * 8, 16, seed + 9) * 3;
+          depth = 1 + pnoise(t, DIRS.indexOf(d) * 8, 4, seed) * 1.5 + pnoise(t, DIRS.indexOf(d) * 8, 16, seed + 9) * 2;
         // How far past where the fade starts: half of it before the fringe's line and half after, but never in the
         //  edge's own pixel, so the land always shows there.
-        past[d] = dist + 0.5 - Math.max(1, depth - FADE / 2);
+        past[d] = dist + 0.5 - Math.max(1, depth - FADE / 2); // + 0.5: from the pixel's centre, as hex and iso measure
         v = Math.min(v, clamp01(past[d] / FADE));
       }
       for (const [a, b] of [
@@ -496,7 +496,6 @@ const distTo = (x, y, dir) => {
   if (dir.length === 2) return Math.hypot(dx, dy);
   return dir === 'n' || dir === 's' ? dy : dx;
 };
-const SHORE_FADE = 2;
 const coastTile = (landDirs) => {
   const t = new Spr();
   for (let y = 0; y < S; y++)
@@ -509,18 +508,11 @@ const coastTile = (landDirs) => {
           edges.length ? -2 * Math.log(edges.reduce((s, dir) => s + Math.exp(-distTo(x, y, dir) / 2), 0)) : 99,
           ...landDirs.filter((dir) => dir.length === 2).map((dir) => distTo(x, y, dir))
         ),
-        // The swell, and the same moved out by the grass at the shore for the sand, wet sand and foam; the shallow
-        //  water reaches no further out than it did, so each piece of the coast still meets its neighbours.
-        swell = pnoise(x, y, 4, 60) * 1 + pnoise(x, y, 16, 64) * 2.4 - 0.6,
-        n = swell + SHORE_FADE * 0.8;
-      // The sand runs out of the grass over its first pixels rather than starting at a line.
-      if (d < SHORE_FADE) {
-        const sand = h1(x, y, 61) > 0.85 ? '#c8b06a' : '#e4d090';
-        t.set(x, y, softGround(d / SHORE_FADE, BAYER[(y % 4) * 4 + (x % 4)] / 16, sand, land(x, y)) ?? land(x, y));
-      } else if (d < 1.2 + n) t.set(x, y, h1(x, y, 61) > 0.85 ? '#c8b06a' : '#e4d090');
+        n = pnoise(x, y, 4, 60) * 1 + pnoise(x, y, 16, 64) * 2.4 - 0.6;
+      if (d < 1.2 + n) t.set(x, y, h1(x, y, 61) > 0.85 ? '#c8b06a' : '#e4d090');
       else if (d < 2.2 + n) t.set(x, y, '#b8a46a');
       else if (d < 3.2 + n) t.set(x, y, h1(x, y, 62) > 0.45 ? '#e8f0fc' : '#7ea4e0');
-      else if (d < 6.5 + swell * 1.5)
+      else if (d < 6.5 + n * 1.5)
         t.set(x, y, (x + y) % 2 && d > 5 + n ? null : h1(x, y, 63) > 0.92 ? '#8cb0e8' : '#3e74c4');
     }
   return t;

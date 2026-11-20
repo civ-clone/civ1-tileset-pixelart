@@ -81,13 +81,19 @@ red with sparks, then shrinks inside dark smoke, which turns grey and breaks up 
 
 ## Terrain
 
-Each terrain has an isolated sprite and 15 join variants, named by the edges (`n`, `e`, `s`, `w`) whose neighbour is
-the same terrain. Along an edge whose neighbour differs, the overlay stops in a ragged fringe at most 8px deep, where
-the land base shows through. It has broad, rounded bites as well as small ragged ones, so a stretch of terrain has a
-soft outline rather than following the squares, and a lone tile's corners are well rounded. The terrain fades in over
-3px about the fringe's line, through a 4 × 4 ordered dither, its first pixels a blend of its ground and the land's, so
-one runs into the other rather than stopping at a line. Features (peaks, mounds, trees) sit in the same places in
-every tile:
+Each terrain has an isolated sprite and 15 join variants, named by the edges (`n`, `e`, `s`, `w`) whose neighbour is the
+same terrain. Along an edge whose neighbour differs, the overlay stops in a ragged fringe at most 6px deep, where the
+land base shows through. It has broad, rounded bites as well as small ragged ones, so a stretch of terrain has a soft
+outline rather than following the squares, and a lone tile's corners are well rounded. The terrain fades in over 3px
+about the fringe's line (never in the edge's own pixel), through a 4 × 4 ordered dither, its first pixels a blend of its
+ground and the land's, so one runs into the other rather than stopping at a line.
+
+The flatter terrains (grassland, plains, desert, tundra, arctic and its Civilization II name glacier, and swamp) count
+the sea as joined (`families.terrain.matches`), so they run right up to the beach rather than stopping in a fringe of
+grass there. Forest, jungle, hills and mountains don't, as their features may cross into a joined neighbour, which the
+sea wouldn't draw.
+
+Features (peaks, mounds, trees) sit in the same places in every tile:
 
 - a feature may cross into a joined neighbour if it keeps 8px clear of the corners, and is then drawn by both tiles.
   That is what lets mountain ranges, hills and forests run on from tile to tile;
@@ -111,8 +117,7 @@ every tile:
 - **ocean**: deep blue with scattered short wave crests.
 - **coast_sprite**: 8 cells. Each holds, in its four quarters, the coast for that corner's three land neighbours as
   the renderer reads them: sand, wet sand, a foam line and a band of shallow water, all on the ocean side. The beach
-  widens and narrows in broad swells along the shore, and curves round where two shores meet in a bay. Its first 2px
-  are the land's grass running out into the sand through the same dither, so the beach has no hard line inland.
+  widens and narrows in broad swells along the shore, and curves round where two shores meet in a bay.
 - **river**: the channel crosses the middle of each joined edge at the same width, square on. It runs in one smooth
   curve between two edges, meandering gently on a straight run, and comes in straight for the first fifth of the way
   from each edge, so it meets the neighbour's channel exactly. Three or more channels meet a little off the

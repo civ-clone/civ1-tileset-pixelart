@@ -1,5 +1,13 @@
 // A map drawn the way the renderer draws it (land/ocean base, coast cut from the strip by the 8-neighbour mask,
 //  terrain joined on edges, river mouths, specials, roads), to check the joins: `node src/preview-map.js <out.png>`.
+// Whether terrain `t` joins a neighbour `n`, as the descriptor's `families.terrain.matches` says (by default, only
+//  the same terrain).
+const joinsTo = (desc) => (t, n) => {
+  const cap = (s) => s[0].toUpperCase() + s.slice(1),
+    list = desc.families.terrain.matches[cap(t)];
+  return list ? list.some((m) => (m === '@water' ? n === 'ocean' : m.toLowerCase() === n)) : n === t;
+};
+const joins = joinsTo(require('../tileset.json'));
 const { S, Spr, png, recolour, unit } = require('../src/lib');
 const { terrainSprites: T, specials, imp } = require('../src/terrain');
 const units = require('../src/units');
@@ -67,11 +75,8 @@ for (let y = 0; y < H; y++)
     }
     put(T.land, x, y);
     if (x === 3 && y === 2) put(imp.irrigation, x, y);
-    const joins = ['n', 'e', 's', 'w'].filter((d) => {
-      const n = at(x + N8[d][0], y + N8[d][1]);
-      return n === t || (t === 'river' && n === 'ocean');
-    });
-    const name = t === 'grassland' || true ? (joins.length ? `${t}_${joins.join('')}` : t) : t;
+    const joined = ['n', 'e', 's', 'w'].filter((d) => joins(t, at(x + N8[d][0], y + N8[d][1])));
+    const name = joined.length ? `${t}_${joined.join('')}` : t;
     put(T[name], x, y);
     const key = `${x},${y}`;
     if (roads.has(key)) {

@@ -27,14 +27,15 @@ again for a hexagon.
 
 - **Variants:** each terrain has an isolated sprite and 63 join variants, one for every set of edges whose neighbour
   is the same terrain.
-- **Edges:** along an edge whose neighbour differs, the terrain stops in a ragged fringe at most 8px deep, where the
+- **Edges:** along an edge whose neighbour differs, the terrain stops in a ragged fringe at most 6px deep, where the
   land base shows through. The grounds are the square pack's, in its colours.
   - The fringe's depth is set by the point of the edge it is beside, and near a corner by the corner itself.
   - So where two joined tiles both stop at a third, their fringes meet at the same depth, with no notch.
   - It has broad, rounded bites as well as small ragged ones, and where two edges that both stop meet at a corner, the
     terrain's own corner is rounded off.
-  - The terrain fades in over 3px about the fringe's line, through the lattice's dither, its first pixels a blend of
-    its ground and the land's, so one runs into the other rather than stopping at a line.
+  - The terrain fades in over 3px about the fringe's line (never in the edge's own pixel), through the lattice's dither,
+    its first pixels a blend of its ground and the land's, so one runs into the other rather than stopping at a line.
+  - The flatter terrains count the sea as joined and run up to the beach, as the square pack's do.
 - **Desert and plains:** their patterns are fitted to the lattice. The desert's dune ripples are 9px apart, so a row is
   three of them. The plains' wheat strokes each keep to their own 4 × 3 cell.
 - **Features:** these are the square pack's drawings (peaks, mounds, trees, palms, reeds, rocks, cacti, ice). They sit
@@ -68,7 +69,6 @@ tile's middle.
     part of the hex only.
   - The six together make one shore. The descriptor puts them together as named corners at the tile's corner.
   - The beach widens and narrows in broad swells along the shore, and curves round where two shores meet in a bay.
-  - Its first 2px are the land's grass running out into the sand through the dither, so it has no hard line inland.
 - **River mouths:** `river_mouth_{edge}`, on the ocean tile, the river's own channel, in its colours and at its width
   where it crosses the edge, cutting through the beach and its foam, then turning the coast's shallow-water colour and
   fading out through an ordered dither a few pixels into the sea, with a little wet sand where it leaves the shore.
