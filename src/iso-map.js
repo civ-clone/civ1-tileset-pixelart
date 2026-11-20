@@ -111,10 +111,15 @@ for (const d of ALL) {
     road.ellipse(x, y, 1.6 * k, 1 * k, '#b89460');
   }
   for (let i = 0; i <= steps * 2; i++) {
-    const [x, y] = lane(i / 2);
+    // Either side of the lane as it bends, not of the straight line.
+    const [x, y] = lane(i / 2),
+      [ax, ay] = lane(i / 2 + 0.5),
+      [bx, by] = lane(i / 2 - 0.5),
+      tl = Math.hypot(ax - bx, ay - by) || 1,
+      [tx, ty] = [(ax - bx) / tl, (ay - by) / tl];
     for (const side of [-1, 1]) {
-      const rx = x - uy * side * 1.2,
-        ry = y + ux * side * 0.7;
+      const rx = x - ty * side * 1.2,
+        ry = y + tx * side * 0.7;
       if (lhash(Math.floor(rx), Math.floor(ry), 91) > 0.4) road.set(rx, ry, '#8e6e42');
     }
     if (lhash(Math.floor(x), Math.floor(y), 90) > 0.93) road.set(x, y, '#d8c49a');

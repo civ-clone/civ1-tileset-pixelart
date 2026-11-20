@@ -173,8 +173,8 @@ const fbm = (x, y, s) => smooth(x, y, 8, s) * 0.6 + smooth(x, y, 3, s + 7) * 0.3
 // ---------- unit badge ----------
 // A river's channel through a tile, as SPEC.md describes: from the middle of each joined edge (`mids`, by direction) to
 //  the others, `r` wide where it crosses an edge and coming in square on, so it meets the neighbour's channel there.
-//  Two edges are joined by one smooth curve, which meanders when they are opposite; three or more meet in a pool off
-//  the middle; one ends in a spring; none is a pond. `ry` squashes it for a projection drawn flatter than it is wide.
+//  Two edges are joined by one smooth curve, which meanders when they are opposite; three or more meet a little off
+//  the middle, where the water widens; one ends in a spring; none is a pond. `ry` squashes it for a projection drawn flatter than it is wide.
 //  Gives, for a pixel, how deep it is in the channel (above 0 in the water, 1 on its line) and how far beyond the
 //  water it is, and how far it is from the edges along the channel (0 where it crosses one, 1 in the middle).
 const channel = ({ w, h, centre, mids, mask, r, ry = 1, seed = 0 }) => {

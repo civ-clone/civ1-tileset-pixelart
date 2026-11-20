@@ -88,3 +88,29 @@ shows.
     roads meet, with darker ruts and the odd stone, so a long road isn't a ruled line. It bends like a lane, each
     direction its own way and by its own amount with a smaller wiggle on top, and comes in square on where it leaves the
     tile, so neighbouring tiles' roads meet.
+  - A railroad is two steel rails on wooden sleepers, spaced every 4px counted back from the far end, so neighbouring
+    tiles' sleepers line up.
+  - Toward the `e` and `w` corners the diamond pinches to a point, and no tile owns its very tip. The rails close in
+    with it, a pixel inside, so an east–west line pinches where two tiles meet.
+- **fog_{edge}:** a black fade in from that edge, about 5–9px deep, dithered with the lattice's 4 × 4 table. Its depth
+  meets the neighbouring tiles' at each corner, as a fringe's does.
+- **fort:** an earth bank and a stake palisade just inside the diamond's edge, with a gate at the front corner and an
+  open centre.
+- **fortify:** a crenellated stone wall about 4px thick inside the diamond's two front edges, on a tall canvas. The game
+  draws it over a fortified unit, so it stands in front of the figure. It stops 3px short of the back edges, so the copy
+  the game draws 2px up and left behind a stack stays inside the diamond.
+- **walls:** tile-sized, which the descriptor's `cities.walls` draws over a walled city and under its rim. It is a
+  crenellated stone wall all round, just inside the rim, with a gatehouse at the front corner. It is left out wherever
+  a building stands over it, so it runs behind the buildings.
+- **city:** drawn on a tall canvas with the square pack's buildings.
+  - A temple stands at the back corner, between two houses.
+  - A keep and two more houses stand down the sides.
+  - It has no walls of its own, so a walled city looks it. The middle and front are left open for the size number.
+  - `city_rim` is a 2.5px rim inside the diamond's edge in the two player colour keys, which the game swaps for the
+    owner's colours. It is left out wherever a building stands over it, so the rim runs behind the buildings.
+
+## Units
+
+The badge is a smaller diamond, 40 × 20, in the player colour on the ground in the middle of the tile, with a 1px border in
+the border key. The square pack's figure stands on it, reaching up out of the tile, and its shadow falls on the badge.
+The combat frames are the square pack's, where the figure stands.
