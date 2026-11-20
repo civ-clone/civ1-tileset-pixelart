@@ -77,9 +77,9 @@ tile's middle.
 ## Other rules' names
 
 The descriptor names what other rules call by another name: Civilization II's Glacier is drawn with the arctic
-sprites, and its River, a feature on any land rather than a terrain of its own (`families.terrain.features`), with the
-river sprites over that land's terrain. The river sprites are only the channel and its banks, so the terrain under them
-shows.
+sprites, its variants and flavour pictures among them, and its River, a feature on any land rather than a terrain of
+its own (`families.terrain.features`), with the river sprites over that land's terrain. The river sprites are only the
+channel and its banks, so the terrain under them shows.
 
 ## Improvements and map
 
