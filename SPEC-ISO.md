@@ -29,7 +29,7 @@ a tile is drawn again for a diamond.
 - **Variants:** each terrain has an isolated sprite and 15 join variants, one for every set of edges whose neighbour is
   the same terrain.
 - **Edges:** along an edge whose neighbour differs, the terrain stops in a ragged fringe at most about 6px deep, where
-  the land base shows through. It is shallower than the hex pack's, as a diamond is only 32px tall. The grounds are the
+  the land base shows through. It is kept shallow, as a diamond is only 32px tall. The grounds are the
   square pack's, in its colours.
   - The fringe's depth is set by the point of the edge it is beside, and near a corner by the corner itself.
   - So where two joined tiles both stop at a third, their fringes meet at the same depth, with no notch.

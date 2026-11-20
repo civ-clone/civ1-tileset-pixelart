@@ -260,7 +260,7 @@ const edgeNoise = (x, y, d, seed, ns = 16, nt = 12) => {
   return at(end) + (at(Math.max(0, Math.min(len, along))) - at(end)) * w;
 };
 // Where a terrain's ground is drawn: the hex, less a ragged fringe along every edge whose neighbour is not the same
-//  terrain, where the land base shows through. The fringe (its fade included) is at most 8px deep, with broad,
+//  terrain, where the land base shows through. The fringe (its fade included) is at most about 6px deep, with broad,
 //  rounded bites as well as small ragged ones, and where two unjoined edges meet, the terrain's corner is rounded off.
 const ROUND = 6,
   FADE = 3;
@@ -414,7 +414,7 @@ const coastWedge = (d, bits) => {
   for (let y = 0; y < H; y++)
     for (let x = 0; x < W; x++) {
       if (!owns(x, y) || wedge(x, y) !== d) continue;
-      // A smooth minimum, so where two land meet in a bay the beach curves round; and a broad swell as well as a fine
+      // A smooth minimum, so where two shores meet in a bay the beach curves round; and a broad swell as well as a fine
       //  one, so the beach widens and narrows along the shore.
       const dist = land.length
           ? -2 * Math.log(land.reduce((s, e) => s + Math.exp(-edgeDist(x, y, e).dist / 2), 0))

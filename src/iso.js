@@ -169,7 +169,7 @@ const FEATURES = {
   desert: (([cactus, rock2, rock15]) => [Fx(cactus, 40, 14), Fx(rock2, 22, 22), Fx(rock15, 30, 9)])(sq('desert')),
   tundra: (([a, b, c]) => [Fx(a, 20, 14), Fx(b, 42, 20), Fx(c, 30, 26)])(sq('tundra')),
   arctic: (([a, b]) => [Fx(a, 24, 14), Fx(b, 40, 24)])(sq('arctic')),
-  swamp: (([a, b, c]) => [Fx(a, 18, 16), Fx(b, 42, 14), Fx(c, 32, 26)])(sq('swamp')),
+  swamp: (([a, b, c]) => [Fx(a, 18, 16), Fx(b, 39, 17), Fx(c, 32, 26)])(sq('swamp')),
   forest: (([c11, b45, b5, c10, b4, c9, b4b, c10b]) => [
     Fx(c11, 22, 16),
     Fx(b45, 40, 13),
@@ -220,7 +220,7 @@ const edgeNoise = (x, y, d, seed, ns = 32, nt = 8) => {
   return at(end) + (at(Math.max(0, Math.min(len, along))) - at(end)) * w;
 };
 // The diamond less a ragged fringe along every unjoined edge. Its edges slope 1 in 2, so a fringe `dist` deep is about
-//  twice that across: depths are kept shallower than the hex pack's. The fringe has broad, rounded bites as well as
+//  twice that across, so depths are kept shallow. The fringe has broad, rounded bites as well as
 //  small ragged ones, and where two unjoined edges meet, the terrain's corner is rounded off.
 const ROUND = 7,
   FADE = 2.4;
@@ -386,7 +386,7 @@ const coastQuarter = (q, bits) => {
   for (let y = 0; y < H; y++)
     for (let x = 0; x < W; x++) {
       if (!owns(x, y) || quarterOf(x, y) !== q) continue;
-      // A smooth minimum of the edges' land, so where two meet in a bay the beach curves round rather than meeting in
+      // A smooth minimum of the edges' shores, so where two meet in a bay the beach curves round rather than meeting in
       //  a point; a corner's own shore by the plain minimum, so a straight shore doesn't thicken at every corner. And a
       //  broad swell as well as a fine one, so the beach widens and narrows along the shore.
       const edges = land.filter((e) => DIRS.includes(e)),

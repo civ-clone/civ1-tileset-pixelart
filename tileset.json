@@ -462,7 +462,7 @@
           "Swamp",
           "@water"
         ],
-          "River": [
+        "River": [
           "River",
           "@water"
         ]

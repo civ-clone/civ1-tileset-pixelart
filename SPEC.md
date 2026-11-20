@@ -91,7 +91,7 @@ ground and the land's, so one runs into the other rather than stopping at a line
 The flatter terrains (grassland, plains, desert, tundra, arctic and its Civilization II name glacier, and swamp) count
 the sea as joined (`families.terrain.matches`), so they run right up to the beach rather than stopping in a fringe of
 grass there. Forest, jungle, hills and mountains don't, as their features may cross into a joined neighbour, which the
-sea wouldn't draw.
+sea wouldn't draw; no feature of the others does, on any of the three grids.
 
 Features (peaks, mounds, trees) sit in the same places in every tile:
 
