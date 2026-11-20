@@ -170,11 +170,12 @@ const smooth = (x, y, f, s) => {
 // World-space noise so neighbouring tiles of the same kind join up.
 const fbm = (x, y, s) => smooth(x, y, 8, s) * 0.6 + smooth(x, y, 3, s + 7) * 0.3 + hash(x, y, s + 13) * 0.1;
 
-// ---------- unit badge ----------
+// ---------- rivers ----------
 // A river's channel through a tile, as SPEC.md describes: from the middle of each joined edge (`mids`, by direction) to
 //  the others, `r` wide where it crosses an edge and coming in square on, so it meets the neighbour's channel there.
 //  Two edges are joined by one smooth curve, which meanders when they are opposite; three or more meet a little off
-//  the middle, where the water widens; one ends in a spring; none is a pond. `ry` squashes it for a projection drawn flatter than it is wide.
+//  the middle, where the water widens; one ends in a spring; none is a pond. `ry` squashes it for a projection drawn
+//  flatter than it is wide.
 //  Gives, for a pixel, how deep it is in the channel (above 0 in the water, 1 on its line) and how far beyond the
 //  water it is, and how far it is from the edges along the channel (0 where it crosses one, 1 in the middle).
 const channel = ({ w, h, centre, mids, mask, r, ry = 1, seed = 0 }) => {
@@ -289,6 +290,7 @@ const riverColour = (ch, x, y, n, h, g) => {
 // A number fixed by a set of directions, so each mask's river is drawn its own way.
 const key = (mask, k) => mask.reduce((s, d) => [...d].reduce((t, c) => (t * 131 + c.charCodeAt(0)) | 0, s * 7919), k);
 
+// ---------- unit badge ----------
 const badge = () => {
   const b = new Spr();
   for (let y = 1; y < 31; y++)
