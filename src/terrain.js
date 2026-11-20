@@ -988,14 +988,15 @@ for (const dir of ['n', 'ne', 'e', 'se', 's', 'sw', 'w', 'nw']) {
     road.ellipse(x + 0.5, y + 0.5, 1.4 * k, 1.4 * k, '#b89460');
   }
   {
-    const px = -dy,
-      py = dx,
-      nl = Math.hypot(px, py);
     for (let i = 0; i <= steps * 2; i++) {
-      const [x, y] = lane(i);
+      // Either side of the lane as it bends, not of the straight line.
+      const [x, y] = lane(i),
+        [ax, ay] = lane(i + 1),
+        [bx, by] = lane(i - 1),
+        tl = Math.hypot(ax - bx, ay - by) || 1;
       for (const side of [-1, 1]) {
-        const rx = Math.round(x + (px / nl) * side),
-          ry = Math.round(y + (py / nl) * side);
+        const rx = Math.round(x - ((ay - by) / tl) * side),
+          ry = Math.round(y + ((ax - bx) / tl) * side);
         if (h1(rx, ry, 91) > 0.4 && road.get(rx, ry)) road.set(rx, ry, '#8e6e42');
       }
       if (h1(Math.round(x), Math.round(y), 90) > 0.93) road.set(x, y, '#d8c49a');
