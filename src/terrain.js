@@ -1,7 +1,21 @@
 // Terrain: the land and ocean bases, every terrain's 16 join variants, the coast strip, river mouths, specials, the
 //  tile improvements and fog. Every texture repeats every 32px, so a sprite meets its own neighbours (and the other
 //  join variants of its terrain) without a seam.
-const { S, OUTLINE, ramp, R, Spr, hash, channel, riverColour, RIVER, BANKS, BAYER, softGround } = require('./lib');
+const {
+  S,
+  OUTLINE,
+  ramp,
+  R,
+  Spr,
+  hash,
+  channel,
+  riverColour,
+  RIVER,
+  BANKS,
+  BAYER,
+  softGround,
+  clamp01,
+} = require('./lib');
 
 const wrap = (v) => ((v % S) + S) % S;
 // Value noise that repeats every 32px; `f` divides 32.
@@ -34,32 +48,31 @@ const MASKS = [...Array(16).keys()].map((m) => DIRS.filter((d, i) => m & (1 << i
 //  the corner is rounded off and fades the same way. All of it is at most 8px deep and corners at most 9px, which is
 //  what lets features cross a joined edge (see `overlay`).
 const FADE = 3,
-  CORNER = 12;
+  ROUND = 9;
 const coverage = (mask, seed) => {
   const c = new Array(S * S).fill(1);
   const edge = { n: (x, y) => [y, x], s: (x, y) => [S - 1 - y, x], w: (x, y) => [x, y], e: (x, y) => [S - 1 - x, y] };
-  const ramp01 = (v) => Math.max(0, Math.min(1, v));
   for (let y = 0; y < S; y++)
     for (let x = 0; x < S; x++) {
       let v = 1;
+      const past = {};
       for (const d of DIRS) {
         if (mask.includes(d)) continue;
         const [dist, t] = edge[d](x, y),
           depth = 1.5 + pnoise(t, DIRS.indexOf(d) * 8, 4, seed) * 2 + pnoise(t, DIRS.indexOf(d) * 8, 16, seed + 9) * 3;
-        v = Math.min(v, ramp01((dist + 0.5 - (depth - FADE / 2)) / FADE));
+        // How far past where the fade starts: half of it before the fringe's line and half after, but never in the
+        //  edge's own pixel, so the land always shows there.
+        past[d] = dist + 0.5 - Math.max(1, depth - FADE / 2);
+        v = Math.min(v, clamp01(past[d] / FADE));
       }
       for (const [a, b] of [
         ['n', 'w'],
         ['n', 'e'],
         ['s', 'w'],
         ['s', 'e'],
-      ]) {
-        if (mask.includes(a) || mask.includes(b)) continue;
-        const cx = b === 'w' ? CORNER : S - CORNER,
-          cy = a === 'n' ? CORNER : S - CORNER;
-        if ((b === 'w' ? x < cx : x > cx) && (a === 'n' ? y < cy : y > cy))
-          v = Math.min(v, ramp01((CORNER - 1.5 - Math.hypot(x + 0.5 - cx, y + 0.5 - cy)) / FADE));
-      }
+      ])
+        if (past[a] !== undefined && past[b] !== undefined && past[a] < ROUND && past[b] < ROUND)
+          v = Math.min(v, clamp01((ROUND - Math.hypot(ROUND - past[a], ROUND - past[b])) / FADE));
       c[y * S + x] = v;
     }
   return c;
@@ -496,7 +509,10 @@ const coastTile = (landDirs) => {
           edges.length ? -2 * Math.log(edges.reduce((s, dir) => s + Math.exp(-distTo(x, y, dir) / 2), 0)) : 99,
           ...landDirs.filter((dir) => dir.length === 2).map((dir) => distTo(x, y, dir))
         ),
-        n = pnoise(x, y, 4, 60) * 1 + pnoise(x, y, 16, 64) * 2.4 - 0.6 + SHORE_FADE * 0.8;
+        // The swell, and the same moved out by the grass at the shore for the sand, wet sand and foam; the shallow
+        //  water reaches no further out than it did, so each piece of the coast still meets its neighbours.
+        swell = pnoise(x, y, 4, 60) * 1 + pnoise(x, y, 16, 64) * 2.4 - 0.6,
+        n = swell + SHORE_FADE * 0.8;
       // The sand runs out of the grass over its first pixels rather than starting at a line.
       if (d < SHORE_FADE) {
         const sand = h1(x, y, 61) > 0.85 ? '#c8b06a' : '#e4d090';
@@ -504,7 +520,7 @@ const coastTile = (landDirs) => {
       } else if (d < 1.2 + n) t.set(x, y, h1(x, y, 61) > 0.85 ? '#c8b06a' : '#e4d090');
       else if (d < 2.2 + n) t.set(x, y, '#b8a46a');
       else if (d < 3.2 + n) t.set(x, y, h1(x, y, 62) > 0.45 ? '#e8f0fc' : '#7ea4e0');
-      else if (d < 6.5 + n * 1.5)
+      else if (d < 6.5 + swell * 1.5)
         t.set(x, y, (x + y) % 2 && d > 5 + n ? null : h1(x, y, 63) > 0.92 ? '#8cb0e8' : '#3e74c4');
     }
   return t;

@@ -378,6 +378,7 @@ const mix = (a, b, t) =>
     .join('');
 // A 4 × 4 Bayer threshold table: an ordered dither whose pattern repeats every 4px, so on any lattice 4 divides.
 const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
+const clamp01 = (v) => Math.max(0, Math.min(1, v));
 // A terrain's ground at a pixel `a` of the way in across its soft edge (0 at the land, 1 at the terrain): the dither
 //  `d` (in [0, 1)) decides between the land showing (null) and the ground, and the ground's first pixels are a blend of
 //  it and the land under them, so one runs into the other rather than stopping at a line.
@@ -409,4 +410,5 @@ module.exports = {
   mix,
   BAYER,
   softGround,
+  clamp01,
 };
