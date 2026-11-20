@@ -529,7 +529,7 @@ const crossing = (dir) => {
         : dir === 'w'
         ? river.get(S - 1, i)
         : river.get(0, i),
-    wet = [...Array(S).keys()].filter((i) => at(i) && at(i) !== BANK && at(i) !== '#6e6a34');
+    wet = [...Array(S).keys()].filter((i) => [...RIVER.water, RIVER.deep, RIVER.line, RIVER.glint].includes(at(i)));
   return { middle: (wet[0] + wet[wet.length - 1] + 1) / 2, half: (wet[wet.length - 1] - wet[0] + 1) / 2 };
 };
 const riverMouth = (dir) => {
@@ -542,7 +542,7 @@ const riverMouth = (dir) => {
         // As wide as the channel where it crosses, the noise coming in over the first few pixels so the two meet.
         w = half + Math.max(0, along - 2) * 0.25 + (pnoise(x, y, 4, 70) - 0.5) * 1.4 * Math.min(1, along / 3),
         fade = (along - 2) / 6;
-      if (across > w + 1.5) continue;
+      if (across > w + 1.2) continue;
       if (across > w) {
         if (along < 3) t.set(x, y, h1(x, y, 72) > 0.5 ? '#b8a46a' : BANK);
         continue;
@@ -946,6 +946,17 @@ const roadLine = (dir) => {
   ];
   return { dx, dy, len: 16.5 * Math.max(Math.abs(dx), Math.abs(dy)) };
 };
+// How far each direction's lane bends to one side, and the smaller wiggle on top, as fractions of its length.
+const BEND = {
+  n: [0.16, 0.06],
+  ne: [-0.2, 0.05],
+  e: [0.22, -0.06],
+  se: [0.08, 0.07],
+  s: [-0.1, -0.07],
+  sw: [0.24, -0.04],
+  w: [-0.06, 0.06],
+  nw: [0.18, -0.05],
+};
 for (const dir of ['n', 'ne', 'e', 'se', 's', 'sw', 'w', 'nw']) {
   const { dx, dy } = roadLine(dir),
     road = new Spr(),
@@ -953,16 +964,26 @@ for (const dir of ['n', 'ne', 'e', 'se', 's', 'sw', 'w', 'nw']) {
   const steps = 18;
   // The track's width and edges wander by noise that repeats every tile, read where each step of it is, so a
   //  neighbour's road meets it at the same width; darker ruts run either side of the middle, with the odd stone.
-  const wide = (x, y) => 0.6 + pnoise(x, y, 8, 95) * 0.6 + pnoise(x, y, 2, 97) * 0.3;
+  // The lane bends to one side and back as it goes, coming in square on at the edge or corner, where the neighbour's
+  //  carries on. Each direction bends its own way and by its own amount, with a smaller wiggle on top (`BEND`), so a run
+  //  through a tile is a gentle S, a C or nearly straight, and a long road wanders like a lane.
+  const step = Math.hypot(dx, dy),
+    len = 16 * step,
+    lane = (i) => {
+      const s = (i / 2) * step,
+        t = Math.min(1, s / len),
+        [big, small] = BEND[dir],
+        o = len * (big * Math.sin(Math.PI * t) + small * Math.sin(2 * Math.PI * t)) * (1 - t);
+      return [15.5 + (dx * i) / 2 - (dy / step) * o, 15.5 + (dy * i) / 2 + (dx / step) * o];
+    },
+    wide = (x, y) => 0.6 + pnoise(x, y, 8, 95) * 0.6 + pnoise(x, y, 2, 97) * 0.3;
   for (let i = 0; i <= steps * 2; i++) {
-    const x = 15.5 + (dx * i) / 2,
-      y = 15.5 + (dy * i) / 2;
+    const [x, y] = lane(i);
     const k = wide(x, y);
     road.ellipse(x + 0.5, y + 0.5, 2.3 * k, 2.3 * k, '#8a6a3c');
   }
   for (let i = 0; i <= steps * 2; i++) {
-    const x = 15.5 + (dx * i) / 2,
-      y = 15.5 + (dy * i) / 2;
+    const [x, y] = lane(i);
     const k = wide(x, y);
     road.ellipse(x + 0.5, y + 0.5, 1.4 * k, 1.4 * k, '#b89460');
   }
@@ -971,8 +992,7 @@ for (const dir of ['n', 'ne', 'e', 'se', 's', 'sw', 'w', 'nw']) {
       py = dx,
       nl = Math.hypot(px, py);
     for (let i = 0; i <= steps * 2; i++) {
-      const x = 15.5 + (dx * i) / 2,
-        y = 15.5 + (dy * i) / 2;
+      const [x, y] = lane(i);
       for (const side of [-1, 1]) {
         const rx = Math.round(x + (px / nl) * side),
           ry = Math.round(y + (py / nl) * side);

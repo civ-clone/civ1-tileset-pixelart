@@ -287,7 +287,7 @@ const riverColour = (ch, x, y, n, h, g) => {
   return null;
 };
 // A number fixed by a set of directions, so each mask's river is drawn its own way.
-const key = (mask, k) => mask.reduce((s, d) => (s * 131 + d.charCodeAt(0) * 7 + d.length) | 0, k);
+const key = (mask, k) => mask.reduce((s, d) => [...d].reduce((t, c) => (t * 131 + c.charCodeAt(0)) | 0, s * 7919), k);
 
 const badge = () => {
   const b = new Spr();

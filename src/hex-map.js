@@ -57,6 +57,14 @@ out['improvements/irrigation'] = (() => {
 out['improvements/mine'] = onHex(imp.mine, 0, 2);
 out['improvements/pollution'] = onHex(imp.pollution, 0, 2);
 
+const BEND = {
+  ne: [0.22, -0.05],
+  e: [-0.12, 0.07],
+  se: [0.06, 0.06],
+  sw: [-0.2, 0.04],
+  w: [0.24, -0.06],
+  nw: [-0.08, -0.07],
+};
 // Roads and railroads: from the middle of the hex to the middle of each of its six edges, where the neighbour's carries
 //  on. A railroad's sleepers are every 4px counted from the edge, so both tiles' sleepers line up.
 for (const d of DIRS) {
@@ -70,22 +78,28 @@ for (const d of DIRS) {
     steps = Math.ceil(len) + 2;
   // The track's width and edges wander by noise on the lattice, read where each step of it is, so a neighbour's road
   //  meets it at the same width; darker ruts run either side of the middle, with the odd stone.
-  const wide = (x, y) => 0.6 + lnoise(x, y, 4, 3, 95) * 0.6 + lnoise(x, y, 16, 12, 97) * 0.3;
+  // The lane bends to one side and back as it goes, coming in square on at the edge, where the neighbour's carries on.
+  //  Each direction bends its own way and by its own amount, with a smaller wiggle on top (`BEND`), so a run
+  //  through a tile is a gentle S, a C or nearly straight, and a long road wanders like a lane.
+  const lane = (s) => {
+      const t = Math.min(1, s / len),
+        [big, small] = BEND[d],
+        o = len * (big * Math.sin(Math.PI * t) + small * Math.sin(2 * Math.PI * t)) * (1 - t);
+      return [cx + ux * s - uy * o, cy + uy * s + ux * o];
+    },
+    wide = (x, y) => 0.6 + lnoise(x, y, 4, 3, 95) * 0.6 + lnoise(x, y, 16, 12, 97) * 0.3;
   for (let i = 0; i <= steps * 2; i++) {
-    const x = cx + (ux * i) / 2,
-      y = cy + (uy * i) / 2;
+    const [x, y] = lane(i / 2);
     const k = wide(x, y);
     road.ellipse(x, y, 2.3 * k, 2.3 * k, '#8a6a3c');
   }
   for (let i = 0; i <= steps * 2; i++) {
-    const x = cx + (ux * i) / 2,
-      y = cy + (uy * i) / 2;
+    const [x, y] = lane(i / 2);
     const k = wide(x, y);
     road.ellipse(x, y, 1.4 * k, 1.4 * k, '#b89460');
   }
   for (let i = 0; i <= steps * 2; i++) {
-    const x = cx + (ux * i) / 2,
-      y = cy + (uy * i) / 2;
+    const [x, y] = lane(i / 2);
     for (const side of [-1, 1]) {
       const rx = x - uy * side,
         ry = y + ux * side;

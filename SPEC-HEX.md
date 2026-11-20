@@ -46,7 +46,7 @@ again for a hexagon.
 - **Rivers:** a blue channel with muddy banks from the middle of the hex to the middle of each joined edge, where the
   neighbour's channel carries on. It runs in one smooth curve between two edges, meandering gently on a straight run,
   and comes in straight for the first fifth of the way from each edge, so it meets the neighbour's channel exactly.
-  Three or more channels meet in a pool a little off the middle, a lone one ends in a spring, and an isolated river is a
+  Three or more channels meet a little off the middle, a lone one ends in a spring, and an isolated river is a
   small pond. The water is darker along its line, and the bank is wider here and there, with sand and reeds, away from
   the edges. Rivers also join the sea.
 
@@ -78,7 +78,9 @@ tile's middle.
 - **mine, pollution, hut:** the square pack's, 2px lower.
 - **road_{edge}, railroad_{edge}:**
   - a road is a packed-dirt track from the middle to the middle of that edge, its width and edges wandering a little by
-    noise on the lattice, with darker ruts and the odd stone;
+    noise on the lattice, with darker ruts and the odd stone. It bends like a lane, each direction its own way and by
+    its own amount with a smaller wiggle on top, and comes in square on where it leaves the tile, so neighbouring tiles'
+    roads meet;
   - a railroad is two steel rails on wooden sleepers, spaced every 4px counted back from the edge, so neighbouring
     tiles' sleepers line up.
 - **fog_{edge}:** a black fade in from that edge, about 7–12px deep, dithered with the lattice's 4 × 3 table. Its depth
