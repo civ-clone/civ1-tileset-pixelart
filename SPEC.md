@@ -84,7 +84,10 @@ red with sparks, then shrinks inside dark smoke, which turns grey and breaks up 
 Each terrain has an isolated sprite and 15 join variants, named by the edges (`n`, `e`, `s`, `w`) whose neighbour is
 the same terrain. Along an edge whose neighbour differs, the overlay stops in a ragged fringe at most 8px deep, where
 the land base shows through. It has broad, rounded bites as well as small ragged ones, so a stretch of terrain has a
-soft outline rather than following the squares. Features (peaks, mounds, trees) sit in the same places in every tile:
+soft outline rather than following the squares, and a lone tile's corners are well rounded. The terrain fades in over
+3px about the fringe's line, through a 4 × 4 ordered dither, its first pixels a blend of its ground and the land's, so
+one runs into the other rather than stopping at a line. Features (peaks, mounds, trees) sit in the same places in
+every tile:
 
 - a feature may cross into a joined neighbour if it keeps 8px clear of the corners, and is then drawn by both tiles.
   That is what lets mountain ranges, hills and forests run on from tile to tile;
@@ -108,7 +111,8 @@ soft outline rather than following the squares. Features (peaks, mounds, trees) 
 - **ocean**: deep blue with scattered short wave crests.
 - **coast_sprite**: 8 cells. Each holds, in its four quarters, the coast for that corner's three land neighbours as
   the renderer reads them: sand, wet sand, a foam line and a band of shallow water, all on the ocean side. The beach
-  widens and narrows in broad swells along the shore, and curves round where two shores meet in a bay.
+  widens and narrows in broad swells along the shore, and curves round where two shores meet in a bay. Its first 2px
+  are the land's grass running out into the sand through the same dither, so the beach has no hard line inland.
 - **river**: the channel crosses the middle of each joined edge at the same width, square on. It runs in one smooth
   curve between two edges, meandering gently on a straight run, and comes in straight for the first fifth of the way
   from each edge, so it meets the neighbour's channel exactly. Three or more channels meet a little off the

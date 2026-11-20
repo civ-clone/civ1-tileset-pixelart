@@ -5,7 +5,7 @@
 //  meet with no gap and no pixel drawn twice. Textures repeat on the grid's lattice, every 32px across and every 27px
 //  down with a 16px shift (`lnoise`, `lhash`), so a sprite meets copies of itself, and its terrain's other join
 //  variants, with no seam on any of its six edges.
-const { OUTLINE, ramp, R, Spr, hash, channel, riverColour, RIVER, BANKS } = require('./lib');
+const { OUTLINE, ramp, R, Spr, hash, channel, riverColour, RIVER, BANKS, softGround } = require('./lib');
 const { defs, keepInside, variantsOf } = require('./terrain');
 
 const W = 32,
@@ -262,9 +262,11 @@ const edgeNoise = (x, y, d, seed, ns = 16, nt = 12) => {
 // Where a terrain's ground is drawn: the hex, less a ragged fringe along every edge whose neighbour is not the same
 //  terrain, where the land base shows through. The fringe (soft band included) is at most 8px deep, with broad,
 //  rounded bites as well as small ragged ones, and where two unjoined edges meet, the terrain's corner is rounded off.
-const ROUND = 4;
+const ROUND = 6,
+  FADE = 3;
 const coverage = (mask, seed) => {
-  const c = new Array(W * H).fill(0);
+  const c = new Array(W * H).fill(0),
+    clamp01 = (v) => Math.max(0, Math.min(1, v));
   for (let y = 0; y < H; y++)
     for (let x = 0; x < W; x++) {
       if (!owns(x, y)) continue;
@@ -274,23 +276,16 @@ const coverage = (mask, seed) => {
         if (mask.includes(d)) continue;
         const { dist } = edgeDist(x, y, d),
           depth = 1.5 + edgeNoise(x, y, d, seed) * 2 + edgeNoise(x, y, d, seed + 9, 4, 3) * 3;
-        past[d] = dist - depth;
-        if (dist < depth) v = 0;
-        else if (dist < depth + 1.5 && v) v = 2;
+        // How far past where the fade starts, half of it before the fringe's line and half after.
+        past[d] = dist - depth + FADE / 2;
+        v = Math.min(v, clamp01(past[d] / FADE));
       }
       for (const [i, a] of DIRS.entries()) {
         const b = DIRS[(i + 1) % 6];
-        if (
-          v &&
-          past[a] !== undefined &&
-          past[b] !== undefined &&
-          past[a] < ROUND &&
-          past[b] < ROUND &&
-          Math.hypot(ROUND - past[a], ROUND - past[b]) > ROUND
-        )
-          v = 0;
+        if (past[a] !== undefined && past[b] !== undefined && past[a] < ROUND && past[b] < ROUND)
+          v = Math.min(v, clamp01((ROUND - Math.hypot(ROUND - past[a], ROUND - past[b])) / FADE));
       }
-      c[y * W + x] = v === 2 ? (lhash(x, y, seed + 3) < 0.5 ? 0 : 2) : v;
+      c[y * W + x] = v;
     }
   return c;
 };
@@ -331,7 +326,11 @@ const overlay = (name) => {
     const cov = coverage(mask, seed),
       out = new Spr(W, H),
       mi = DIRS.reduce((m, d, i) => (mask.includes(d) ? m | (1 << i) : m), 0);
-    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (cov[y * W + x]) out.set(x, y, ground(x, y) ?? null);
+    for (let y = 0; y < H; y++)
+      for (let x = 0; x < W; x++) {
+        const a = cov[y * W + x];
+        if (a > 0) out.set(x, y, softGround(a, dither(x, y), ground(x, y) ?? null, land(x, y)) ?? null);
+      }
     const big = new Spr(W * 3, H * 3);
     for (const { l, id, p, into } of layers) {
       if (into === null ? !keepInside(variant, mi, id, seed, p) : !mask.includes(into)) continue;
@@ -409,19 +408,24 @@ const around = (d) => {
   const i = DIRS.indexOf(d);
   return [DIRS[(i + 5) % 6], d, DIRS[(i + 1) % 6]];
 };
+const SHORE_FADE = 2;
 const coastWedge = (d, bits) => {
   const t = new Spr(W, H),
-    land = around(d).filter((_, i) => bits[i] === '1');
+    shores = around(d).filter((_, i) => bits[i] === '1');
   for (let y = 0; y < H; y++)
     for (let x = 0; x < W; x++) {
       if (!owns(x, y) || wedge(x, y) !== d) continue;
       // A smooth minimum, so where two shores meet in a bay the beach curves round; and a broad swell as well as a fine
       //  one, so the beach widens and narrows along the shore.
-      const dist = land.length
-          ? -2 * Math.log(land.reduce((s, e) => s + Math.exp(-edgeDist(x, y, e).dist / 2), 0))
+      const dist = shores.length
+          ? -2 * Math.log(shores.reduce((s, e) => s + Math.exp(-edgeDist(x, y, e).dist / 2), 0))
           : 99,
-        n = lnoise(x, y, 8, 6, 60) * 1 + lnoise(x, y, 2, 2, 64) * 2.4 - 0.6;
-      if (dist < 1.2 + n) t.set(x, y, lhash(x, y, 61) > 0.85 ? '#c8b06a' : '#e4d090');
+        n = lnoise(x, y, 8, 6, 60) * 1 + lnoise(x, y, 2, 2, 64) * 2.4 - 0.6 + SHORE_FADE * 0.8;
+      // The sand runs out of the grass over its first pixels rather than starting at a line.
+      if (dist < SHORE_FADE) {
+        const sand = lhash(x, y, 61) > 0.85 ? '#c8b06a' : '#e4d090';
+        t.set(x, y, softGround(dist / SHORE_FADE, dither(x, y), sand, land(x, y)) ?? land(x, y));
+      } else if (dist < 1.2 + n) t.set(x, y, lhash(x, y, 61) > 0.85 ? '#c8b06a' : '#e4d090');
       else if (dist < 2.2 + n) t.set(x, y, '#b8a46a');
       else if (dist < 3.2 + n) t.set(x, y, lhash(x, y, 62) > 0.45 ? '#e8f0fc' : '#7ea4e0');
       else if (dist < 6.5 + n * 1.5)

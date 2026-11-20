@@ -364,6 +364,29 @@ const recolour = (spr, light, dark) => {
   o.p = spr.p.map((c) => (c === KEY_L ? light : c === KEY_B ? dark : c));
   return o;
 };
+// ---------- soft edges ----------
+// A colour `t` of the way from `a` to `b`.
+const mix = (a, b, t) =>
+  '#' +
+  [1, 3, 5]
+    .map((i) => {
+      const [p, q] = [parseInt(a.slice(i, i + 2), 16), parseInt(b.slice(i, i + 2), 16)];
+      return Math.round(p + (q - p) * t)
+        .toString(16)
+        .padStart(2, '0');
+    })
+    .join('');
+// A 4 × 4 Bayer threshold table: an ordered dither whose pattern repeats every 4px, so on any lattice 4 divides.
+const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
+// A terrain's ground at a pixel `a` of the way in across its soft edge (0 at the land, 1 at the terrain): the dither
+//  `d` (in [0, 1)) decides between the land showing (null) and the ground, and the ground's first pixels are a blend of
+//  it and the land under them, so one runs into the other rather than stopping at a line.
+const softGround = (a, d, ground, under) => {
+  if (a >= 1 || !ground) return ground;
+  if (a <= d) return null;
+  return a < 0.5 ? mix(ground, under, 0.55) : a < 0.8 ? mix(ground, under, 0.3) : ground;
+};
+
 module.exports = {
   S,
   OUTLINE,
@@ -383,4 +406,7 @@ module.exports = {
   unit,
   png,
   recolour,
+  mix,
+  BAYER,
+  softGround,
 };

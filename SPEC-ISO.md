@@ -35,7 +35,10 @@ a tile is drawn again for a diamond.
   - So where two joined tiles both stop at a third, their fringes meet at the same depth, with no notch.
   - It wanders in broad, rounded bites as well as small ragged ones, so a stretch of terrain has a soft outline rather
     than following the diamonds.
-  - Where two edges that both stop meet at a corner, the terrain's own corner is rounded off.
+  - Where two edges that both stop meet at a corner, the terrain's own corner is rounded off, broadly, so a lone
+    tile of it reads as a patch rather than a diamond.
+  - The terrain fades in over about 2px about the fringe's line, through the lattice's dither, its first pixels a
+    blend of its ground and the land's, so one runs into the other rather than stopping at a line.
 - **Desert and plains:** their patterns are fitted to the lattice. The desert's dune ripples are 8px apart, so a row is
   two of them. The plains' wheat strokes each keep to their own 4 × 4 cell.
 - **Features:** these are the square pack's drawings (peaks, mounds, trees, palms, reeds, rocks, cacti, ice). The
@@ -69,6 +72,8 @@ tile's middle.
     a band of shallow water, on its own quarter only.
   - The beach widens and narrows in broad swells along the shore, and where two shores meet in a bay it curves round
     rather than meeting in a point, so the coastline reads as rounded rather than following the diamonds.
+  - Its first pixels are the land's grass running out into the sand through the dither, so it has no hard line
+    inland.
   - The descriptor puts them together as named corners, each at the tile's corner.
 - **River mouths:** `river_mouth_{edge}`, on the ocean tile: the river's own channel, in its colours and at its width
   where it crosses the edge, cutting through the beach and its foam, then turning the coast's shallow-water colour and
