@@ -45,8 +45,8 @@ const MASKS = [...Array(16).keys()].map((m) => DIRS.filter((d, i) => m & (1 << i
 // How much of a terrain overlay is drawn at each pixel, from 0 (the land base shows) to 1: the whole tile, less a
 //  ragged fringe along every edge whose neighbour is not the same terrain. The fringe has small ragged bites and
 //  broad, rounded ones, and fades in over 3px about its line rather than stopping there; where two unjoined edges meet,
-//  the corner is rounded off and fades the same way. All of it is at most 8px deep and corners at most 9px, which is
-//  what lets features cross a joined edge (see `overlay`).
+//  the corner is rounded off and fades the same way. It is about 6px deep along an edge and 7px at a corner, inside the
+//  8px (9px at corners) that lets features cross a joined edge (see `overlay`).
 const FADE = 3,
   ROUND = 9;
 const coverage = (mask, seed) => {
