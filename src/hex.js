@@ -6,7 +6,7 @@
 //  down with a 16px shift (`lnoise`, `lhash`), so a sprite meets copies of itself, and its terrain's other join
 //  variants, with no seam on any of its six edges.
 const { OUTLINE, ramp, R, Spr, hash, channel, riverColour, RIVER, BANKS } = require('./lib');
-const { defs } = require('./terrain');
+const { defs, keepInside, variantsOf } = require('./terrain');
 
 const W = 32,
   H = 36,
@@ -327,14 +327,14 @@ const overlay = (name) => {
     }
   layers.sort((a, b) => a.ay - b.ay || a.ax - b.ax);
 
-  return (mask) => {
+  return (mask, variant = 0) => {
     const cov = coverage(mask, seed),
       out = new Spr(W, H),
       mi = DIRS.reduce((m, d, i) => (mask.includes(d) ? m | (1 << i) : m), 0);
     for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (cov[y * W + x]) out.set(x, y, ground(x, y) ?? null);
     const big = new Spr(W * 3, H * 3);
     for (const { l, id, p, into } of layers) {
-      if (into === null ? hash(mi, id, seed + 1) >= p : !mask.includes(into)) continue;
+      if (into === null ? !keepInside(variant, mi, id, seed, p) : !mask.includes(into)) continue;
       big.over(l);
     }
     for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (owns(x, y)) out.set(x, y, big.get(x + BX, y + BY));
@@ -346,6 +346,7 @@ const sprites = {};
 for (const name of Object.keys(GROUND)) {
   const draw = overlay(name);
   for (const m of MASKS) sprites[m.length ? `terrain/${name}_${named(m)}` : `terrain/${name}`] = draw(m);
+  variantsOf(draw, MASKS[MASKS.length - 1]).forEach((v, i) => (sprites[`terrain/${name}_v${i + 1}`] = v));
 }
 
 // ---------- bases ----------

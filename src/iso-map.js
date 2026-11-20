@@ -7,6 +7,7 @@
 const { KEY_L, KEY_B, R, Spr } = require('./lib');
 const { specials, imp } = require('./terrain');
 const misc = require('./misc');
+const { flavours } = require('./flavour');
 const units = require('./units');
 const combat = require('./combat');
 const {
@@ -44,6 +45,8 @@ const out = { ...terrain };
 // ---------- specials ----------
 // The square pack's, moved from its lower right to the diamond's middle, a little right of centre.
 for (const [k, s] of Object.entries(specials)) out[`terrain/${k}`] = k === 'shield' ? s : onIso(s, 16, -5);
+// Flavour, left of the diamond's middle, clear of the special on its right.
+for (const [k, s] of Object.entries(flavours)) out[`terrain/${k}`] = onIso(s, 10, 0);
 
 // ---------- improvements ----------
 // Irrigation: water channels between earth ridges running down to the right, inside an earth border 3px in.

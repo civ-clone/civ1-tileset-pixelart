@@ -118,6 +118,33 @@ soft outline rather than following the squares. Features (peaks, mounds, trees) 
   crosses the edge, cutting through the beach and its foam, then turning the coast's shallow-water colour and fading out
   through an ordered dither a few pixels into the sea, with a little wet sand where it leaves the shore.
 
+## Variants and flavour
+
+A stretch of one terrain shouldn't be the same tile over and over. Where a square's terrain is joined on every edge,
+the descriptor's `families.terrain.variants` and `flavour` give the game other pictures of it, which it picks by a
+stable hash of the square's position (`counts` says how many each terrain has, by engine name).
+
+- **{terrain}_v{n}:** the fully joined sprite again, keeping a different selection of the features that sit wholly
+  inside the tile, and fewer of them. Features that cross into a neighbour are the same as in the usual sprite, so a
+  variant meets its neighbours as the usual one does. A variant identical to the usual sprite, or to another, is left
+  out, so some terrains have fewer.
+- **{terrain}_flavour_{n}:** a small picture drawn over the fully joined terrain, on about 30% of such squares, and
+  never on a square with a special or a hut, which the game leaves it off. Each is drawn left of the middle, and none
+  is an animal or a crop, so none reads as a special.
+
+| Terrain | Flavour |
+| --- | --- |
+| grassland | A patch of wildflowers; a small pond fringed with rushes |
+| plains | A lone round-topped tree; a stony outcrop in the grass |
+| desert | A tumbleweed; a patch of cracked, dry ground |
+| tundra | A melt pond with an icy rim; a lichen-covered boulder |
+| arctic | A dark crevasse in the ice; a snow drift |
+| swamp | Lily pads on a pool of still water; a dead stump |
+| forest | A fallen log; a ring of red toadstools |
+| jungle | A great purple flower; a vine-covered rock |
+| hills | A rocky outcrop; a cairn of stacked stones |
+| mountains | A snowfield on the slope; a scree slide |
+
 ## Specials
 
 Drawn over the terrain, in the lower right of the tile unless noted.

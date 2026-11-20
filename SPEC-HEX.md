@@ -50,6 +50,12 @@ again for a hexagon.
   small pond. The water is darker along its line, and the bank is wider here and there, with sand and reeds, away from
   the edges. Rivers also join the sea.
 
+## Variants and flavour
+
+As in the square pack ([SPEC.md](SPEC.md)): variants of each terrain's fully joined sprite, keeping a different
+selection of the features wholly inside the tile, and the square pack's flavour pictures, moved to the left of the
+tile's middle.
+
 ## Water
 
 - **Ocean:** the square pack's deep blue with short wave crests, each crest kept to its own cell.

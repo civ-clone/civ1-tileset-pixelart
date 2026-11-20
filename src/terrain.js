@@ -66,6 +66,23 @@ const coverage = (mask, seed) => {
   return c;
 };
 
+// Whether a feature wholly inside the tile is drawn: in the usual sprites, as the join variant's hash says; in a
+//  variant of the fully joined sprite (`variant` 1 and up), as that variant's own, keeping fewer, so a stretch of the
+//  terrain mixes them up. Features that reach into a neighbour aren't chosen here, so every variant meets its
+//  neighbours as the usual sprite does.
+const keepInside = (variant, mi, id, seed, p) =>
+  variant ? hash(16 * variant + mi, id, seed + 1) < (p ?? 1) * 0.65 : !(hash(mi, id, seed + 1) >= p);
+// Up to `max` variants of the fully joined sprite that differ from it and from each other, drawn by `draw(mask, k)`.
+const variantsOf = (draw, full, max = 2) => {
+  const kept = [draw(full, 0)],
+    same = (a, b) => a.p.every((c, i) => c === b.p[i]);
+  for (let k = 1; k <= 6 && kept.length <= max; k++) {
+    const v = draw(full, k);
+    if (!kept.some((o) => same(o, v))) kept.push(v);
+  }
+  return kept.slice(1);
+};
+
 // ---------- overlay ----------
 // A terrain sprite for `mask`: its ground where the coverage is, and its features. Features repeat every tile, and one
 //  that crosses into a neighbour is drawn by both tiles, so one is kept only when it is the same either side: it may
@@ -96,7 +113,7 @@ const overlay = (def) => {
       }
   layers.sort((a, b) => a.ay - b.ay || a.ax - b.ax);
 
-  return (mask) => {
+  return (mask, variant = 0) => {
     const cov = coverage(mask, def.seed),
       out = new Spr();
     if (def.ground)
@@ -122,7 +139,7 @@ const overlay = (def) => {
         if (dir === 'e' && x0 < S + 9) continue;
       } else {
         // Wholly inside this tile, so no neighbour draws it: some are left out of some variants, for variety.
-        if (hash(mi, id, def.seed + 1) >= p) continue;
+        if (!keepInside(variant, mi, id, def.seed, p)) continue;
       }
       big.over(l);
     }
@@ -403,10 +420,14 @@ const defs = {
   },
 };
 
-const terrainSprites = {};
+const terrainSprites = {},
+  // How many variants of its fully joined sprite each terrain has, by sprite name (`{terrain}_v{n}`).
+  variantCounts = {};
 for (const [name, def] of Object.entries(defs)) {
   const draw = overlay(def);
   for (const m of MASKS) terrainSprites[m.length ? `${name}_${m.join('')}` : name] = draw(m);
+  variantsOf(draw, MASKS[15]).forEach((v, i) => (terrainSprites[`${name}_v${i + 1}`] = v));
+  variantCounts[name] = Object.keys(terrainSprites).filter((k) => k.startsWith(`${name}_v`)).length;
 }
 
 // ---------- rivers ----------
@@ -1017,4 +1038,4 @@ for (const d of DIRS) {
   fog[`fog_${d}`] = t;
 }
 
-module.exports = { terrainSprites, specials, imp, fog, MASKS, defs, coverage };
+module.exports = { terrainSprites, variantCounts, specials, imp, fog, MASKS, defs, coverage, keepInside, variantsOf };
