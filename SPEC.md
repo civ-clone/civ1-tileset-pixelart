@@ -83,7 +83,8 @@ red with sparks, then shrinks inside dark smoke, which turns grey and breaks up 
 
 Each terrain has an isolated sprite and 15 join variants, named by the edges (`n`, `e`, `s`, `w`) whose neighbour is
 the same terrain. Along an edge whose neighbour differs, the overlay stops in a ragged fringe at most 8px deep, where
-the land base shows through. Features (peaks, mounds, trees) sit in the same places in every tile:
+the land base shows through. It has broad, rounded bites as well as small ragged ones, so a stretch of terrain has a
+soft outline rather than following the squares. Features (peaks, mounds, trees) sit in the same places in every tile:
 
 - a feature may cross into a joined neighbour if it keeps 8px clear of the corners, and is then drawn by both tiles.
   That is what lets mountain ranges, hills and forests run on from tile to tile;
@@ -102,12 +103,20 @@ the land base shows through. Features (peaks, mounds, trees) sit in the same pla
 | jungle | Bright dense green with leaf flecks | Palms and flowering broad-leaf bushes |
 | hills | Olive | Rounded, shaded grassy mounds |
 | mountains | Rocky grey-brown with scree | Peaks with a lit left face, shadowed right face and snow caps |
-| river | (on land) | A blue channel with muddy banks from the centre to each joined edge (rivers also join the sea); a small pool when isolated |
+| river | (on land) | A blue channel with muddy banks to each joined edge (rivers also join the sea), as below |
 
 - **ocean**: deep blue with scattered short wave crests.
 - **coast_sprite**: 8 cells. Each holds, in its four quarters, the coast for that corner's three land neighbours as
-  the renderer reads them: sand, wet sand, a foam line and a band of shallow water, all on the ocean side.
-- **river_mouth_{n,e,s,w}**: on the ocean tile, fresh water fanning out from that edge between sand bars.
+  the renderer reads them: sand, wet sand, a foam line and a band of shallow water, all on the ocean side. The beach
+  widens and narrows in broad swells along the shore, and curves round where two shores meet in a bay.
+- **river**: the channel crosses the middle of each joined edge at the same width, square on. It runs in one smooth
+  curve between two edges, meandering gently on a straight run, and comes in straight for the first fifth of the way
+  from each edge, so it meets the neighbour's channel exactly. Three or more channels meet a little off the
+  middle, a lone one ends in a spring, and an isolated river is a small pond. The water is darker along its line, and
+  the bank is wider here and there, with sand and reeds, away from the edges.
+- **river_mouth_{n,e,s,w}**: on the ocean tile, the river's own channel, in its colours and at its width where it
+  crosses the edge, cutting through the beach and its foam, then turning the coast's shallow-water colour and fading out
+  through an ordered dither a few pixels into the sea, with a little wet sand where it leaves the shore.
 
 ## Specials
 
@@ -145,7 +154,10 @@ Drawn over the terrain, in the lower right of the tile unless noted.
   terrain (`irrigation.overTerrain`), as this pack's terrain covers the land.
 - **mine**: a timbered shaft in a rock heap, with a pick.
 - **pollution**: olive-grey sludge splats.
-- **road_{dir}**: a packed-dirt track from the centre towards each of 8 directions.
+- **road_{dir}**: a packed-dirt track from the centre towards each of 8 directions. Its width and edges wander a little,
+  by noise that repeats every tile so neighbouring tiles' roads meet, with darker ruts and the odd stone. It bends like
+  a lane, each direction its own way and by its own amount with a smaller wiggle on top, and comes in square on where it
+  leaves the tile, so neighbouring tiles' roads meet.
 - **railroad_{dir}**: two steel rails on wooden sleepers, every 4px counted from the tile edge so they line up.
 - **fog_{n,e,s,w}**: a black ordered-dither fade from that edge, about 7–12px deep.
 - **hut**: a thatched village hut with a smaller hut and a totem.

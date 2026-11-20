@@ -170,6 +170,126 @@ const smooth = (x, y, f, s) => {
 // World-space noise so neighbouring tiles of the same kind join up.
 const fbm = (x, y, s) => smooth(x, y, 8, s) * 0.6 + smooth(x, y, 3, s + 7) * 0.3 + hash(x, y, s + 13) * 0.1;
 
+// ---------- rivers ----------
+// A river's channel through a tile, as SPEC.md describes: from the middle of each joined edge (`mids`, by direction) to
+//  the others, `r` wide where it crosses an edge and coming in square on, so it meets the neighbour's channel there.
+//  Two edges are joined by one smooth curve, which meanders when they are opposite; three or more meet a little off
+//  the middle, where the water widens; one ends in a spring; none is a pond. `ry` squashes it for a projection drawn
+//  flatter than it is wide.
+//  Gives, for a pixel, how deep it is in the channel (above 0 in the water, 1 on its line) and how far beyond the
+//  water it is, and how far it is from the edges along the channel (0 where it crosses one, 1 in the middle).
+const channel = ({ w, h, centre, mids, mask, r, ry = 1, seed = 0 }) => {
+  const [cx, cy] = centre,
+    pts = [],
+    rnd = (k) => hash(key(mask, k), k, seed),
+    cubic = (a, b, c, d, t) =>
+      a.map((_, i) => (1 - t) ** 3 * a[i] + 3 * (1 - t) ** 2 * t * b[i] + 3 * (1 - t) * t * t * c[i] + t ** 3 * d[i]),
+    toward = (a, b, f) => a.map((v, i) => v + (b[i] - v) * f),
+    // Square on to each crossed edge: a straight run from a little past it to a fifth of the way in, where it bends.
+    inner = (d) => toward(mids[d], centre, 0.2),
+    past = (d) => {
+      for (let i = 0; i <= 14; i++) pts.push([...toward(mids[d], centre, -0.15 + 0.35 * (i / 14)), r, 0]);
+    },
+    // Along a curve from a to d through b and c, bent `amp` px to one side and swelling and narrowing as it goes.
+    curve = (a, b, c, d, amp, k, rEnd = r) => {
+      const n = 64,
+        [ax, ay] = [d[0] - a[0], (d[1] - a[1]) / ry],
+        al = Math.hypot(ax, ay) || 1,
+        [nx, ny] = [-ay / al, (ax / al) * ry],
+        ph = rnd(k) * Math.PI * 2;
+      for (let i = 0; i <= n; i++) {
+        const t = i / n,
+          env = Math.sin(Math.PI * t) ** 2,
+          [x, y] = cubic(a, b, c, d, t),
+          off = amp * Math.sin(2 * Math.PI * t) * env;
+        pts.push([
+          x + nx * off,
+          y + ny * off,
+          (r + (rEnd - r) * t) * (1 + 0.16 * Math.sin(3 * Math.PI * t + ph) * env),
+          env,
+        ]);
+      }
+    },
+    blob = (x, y, rad, k) => {
+      for (let i = 0; i < 3; i++) {
+        const a = rnd(k + i) * Math.PI * 2,
+          o = rad * 0.35;
+        pts.push([x + Math.cos(a) * o, y + Math.sin(a) * o * ry, rad * (0.75 + rnd(k + i + 9) * 0.2), 1]);
+      }
+      pts.push([x, y, rad * 0.8, 1]);
+    };
+  mask.forEach(past);
+  const side = (k) => (rnd(k) > 0.5 ? 1 : -1);
+  if (mask.length === 2) {
+    const [a, d] = mask.map(inner),
+      opposite = Math.abs(a[0] + d[0] - 2 * cx) + Math.abs(a[1] + d[1] - 2 * cy) < 1;
+    curve(a, toward(a, centre, 0.6), toward(d, centre, 0.6), d, opposite ? 1.8 * side(1) : 0.8 * side(1), 2);
+  } else if (mask.length) {
+    // The pool or spring sits a little off the middle, so the channels meet it each at its own angle.
+    const a = rnd(3) * Math.PI * 2,
+      pool = [cx + Math.cos(a) * 1.5, cy + Math.sin(a) * 1.5 * ry];
+    mask.forEach((m, i) =>
+      curve(inner(m), toward(mids[m], centre, 0.5), toward(pool, mids[m], 0.25), pool, 0.9 * side(10 + i), 20 + i)
+    );
+    blob(pool[0], pool[1], r * (mask.length === 1 ? 1.35 : 1.3), 40);
+  } else blob(cx, cy, r * 1.6, 40);
+  const depth = new Float32Array(w * h),
+    beyond = new Float32Array(w * h).fill(99),
+    along = new Float32Array(w * h);
+  for (let y = 0; y < h; y++)
+    for (let x = 0; x < w; x++) {
+      let best = -Infinity,
+        near = 99,
+        env = 0;
+      for (const [px, py, pr, e] of pts) {
+        const d = Math.hypot(x + 0.5 - px, (y + 0.5 - py) / ry);
+        if (1 - d / pr > best) {
+          best = 1 - d / pr;
+          env = e;
+        }
+        near = Math.min(near, d - pr);
+      }
+      depth[y * w + x] = best;
+      beyond[y * w + x] = near;
+      along[y * w + x] = env;
+    }
+  const at = (a) => (x, y) => x >= 0 && y >= 0 && x < w && y < h ? a[y * w + x] : a === beyond ? 99 : 0;
+  return { w, h, depth: at(depth), beyond: at(beyond), along: at(along) };
+};
+// The colour of a pixel of a river `channel`, given a smooth noise `n` and two hashes `h`, `g` there, all 0 to 1: water
+//  darker along its line, an outline where it meets its bank, glints, and a muddy bank, wider here and there away from
+//  the edges, with sand and reeds on it. Nothing for a pixel beyond the bank.
+const RIVER = { water: ['#3c6cc4', '#4a7ad0', '#5888da'], deep: '#34609e', line: '#2c54a4', glint: '#a8c8f4' },
+  BANKS = { mud: '#8c7a48', dark: '#6e6a34', sand: '#b8a46a', reed: '#3e6a24' };
+const riverColour = (ch, x, y, n, h, g) => {
+  const d = ch.depth(x, y);
+  if (d > 0) {
+    const edge = [
+      [1, 0],
+      [-1, 0],
+      [0, 1],
+      [0, -1],
+    ].some(([dx, dy]) => {
+      const nx = x + dx,
+        ny = y + dy;
+      return nx >= 0 && ny >= 0 && nx < ch.w && ny < ch.h && ch.depth(nx, ny) <= 0;
+    });
+    if (edge) return RIVER.line;
+    if (d > 0.35 && h > 0.93) return RIVER.glint;
+    if (d > 0.6 && n < 0.55) return RIVER.deep;
+    return RIVER.water[Math.max(0, Math.min(2, Math.floor((n * 0.7 + (1 - d) * 0.5) * 3)))];
+  }
+  const b = ch.beyond(x, y),
+    wide = ch.along(x, y) > 0.45 && n > 0.5;
+  if (b < 1.2 || (wide && b < 2.3)) {
+    if (b >= 1.2) return g > 0.7 ? BANKS.reed : BANKS.sand;
+    return h > 0.5 ? BANKS.mud : BANKS.dark;
+  }
+  return null;
+};
+// A number fixed by a set of directions, so each mask's river is drawn its own way.
+const key = (mask, k) => mask.reduce((s, d) => [...d].reduce((t, c) => (t * 131 + c.charCodeAt(0)) | 0, s * 7919), k);
+
 // ---------- unit badge ----------
 const badge = () => {
   const b = new Spr();
@@ -244,4 +364,23 @@ const recolour = (spr, light, dark) => {
   o.p = spr.p.map((c) => (c === KEY_L ? light : c === KEY_B ? dark : c));
   return o;
 };
-module.exports = { S, OUTLINE, KEY_L, KEY_B, ramp, R, Spr, hash, smooth, fbm, badge, unit, png, recolour };
+module.exports = {
+  S,
+  OUTLINE,
+  KEY_L,
+  KEY_B,
+  ramp,
+  R,
+  Spr,
+  hash,
+  smooth,
+  fbm,
+  channel,
+  riverColour,
+  RIVER,
+  BANKS,
+  badge,
+  unit,
+  png,
+  recolour,
+};

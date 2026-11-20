@@ -20,6 +20,7 @@ const {
   edgeDist,
   edgeNoise,
   lhash,
+  lnoise,
   dither,
   sprites: terrain,
 } = require('./iso');
@@ -64,6 +65,16 @@ out['improvements/irrigation'] = (() => {
 out['improvements/mine'] = onIso(imp.mine, 16, -6);
 out['improvements/pollution'] = onIso(imp.pollution, 16, -1);
 
+const BEND = {
+  n: [0.1, 0.06],
+  ne: [0.22, -0.05],
+  e: [-0.08, 0.05],
+  se: [-0.06, 0.07],
+  s: [0.14, -0.06],
+  sw: [-0.24, 0.04],
+  w: [0.12, -0.05],
+  nw: [0.18, 0.06],
+};
 // Roads and railroads: from the middle of the diamond to the middle of each edge, or to each corner, where the
 //  neighbour's carries on. A railroad's sleepers are every 4px counted back from the far end, so both tiles' line up.
 //  Toward the e and w corners the diamond pinches to a point (no tile owns its very tip), so the rails close in with
@@ -77,12 +88,41 @@ for (const d of ALL) {
     road = new Spr(W, H),
     rail = new Spr(W, H),
     steps = Math.ceil(len) + 2;
-  for (let i = 0; i <= steps; i++) road.ellipse(cx + ux * i, cy + uy * i, 2.6, 1.8, '#8a6a3c');
-  for (let i = 0; i <= steps; i++) {
-    const x = cx + ux * i,
-      y = cy + uy * i;
-    road.ellipse(x, y, 1.6, 1, '#b89460');
-    if (lhash(Math.floor(x), Math.floor(y), 90) > 0.7) road.set(x, y, '#a07e4a');
+  // The track's width and edges wander by noise on the lattice, read where each step of it is, so a neighbour's road
+  //  meets it at the same width; darker ruts run either side of the middle, with the odd stone.
+  // The lane bends to one side and back as it goes, coming in square on at the edge, where the neighbour's carries on.
+  //  Each direction bends its own way and by its own amount, with a smaller wiggle on top (`BEND`), so a run
+  //  through a tile is a gentle S, a C or nearly straight, and a long road wanders like a lane.
+  const lane = (s) => {
+      const t = Math.min(1, s / len),
+        [big, small] = BEND[d],
+        o = len * (big * Math.sin(Math.PI * t) + small * Math.sin(2 * Math.PI * t)) * (1 - t);
+      return [cx + ux * s - uy * o, cy + uy * s + ux * o];
+    },
+    wide = (x, y) => 0.6 + lnoise(x, y, 8, 2, 95) * 0.6 + lnoise(x, y, 32, 8, 97) * 0.3;
+  for (let i = 0; i <= steps * 2; i++) {
+    const [x, y] = lane(i / 2),
+      k = wide(x, y);
+    road.ellipse(x, y, 2.6 * k, 1.8 * k, '#8a6a3c');
+  }
+  for (let i = 0; i <= steps * 2; i++) {
+    const [x, y] = lane(i / 2),
+      k = wide(x, y);
+    road.ellipse(x, y, 1.6 * k, 1 * k, '#b89460');
+  }
+  for (let i = 0; i <= steps * 2; i++) {
+    // Either side of the lane as it bends, not of the straight line.
+    const [x, y] = lane(i / 2),
+      [ax, ay] = lane(i / 2 + 0.5),
+      [bx, by] = lane(i / 2 - 0.5),
+      tl = Math.hypot(ax - bx, ay - by) || 1,
+      [tx, ty] = [(ax - bx) / tl, (ay - by) / tl];
+    for (const side of [-1, 1]) {
+      const rx = x - ty * side * 1.2,
+        ry = y + tx * side * 0.7;
+      if (lhash(Math.floor(rx), Math.floor(ry), 91) > 0.4) road.set(rx, ry, '#8e6e42');
+    }
+    if (lhash(Math.floor(x), Math.floor(y), 90) > 0.93) road.set(x, y, '#d8c49a');
   }
   for (let i = 0; i <= steps * 2; i++) {
     const back = len - i / 2;

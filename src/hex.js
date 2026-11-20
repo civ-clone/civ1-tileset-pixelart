@@ -5,7 +5,7 @@
 //  meet with no gap and no pixel drawn twice. Textures repeat on the grid's lattice, every 32px across and every 27px
 //  down with a 16px shift (`lnoise`, `lhash`), so a sprite meets copies of itself, and its terrain's other join
 //  variants, with no seam on any of its six edges.
-const { OUTLINE, ramp, R, Spr, hash } = require('./lib');
+const { OUTLINE, ramp, R, Spr, hash, channel, riverColour, RIVER, BANKS } = require('./lib');
 const { defs } = require('./terrain');
 
 const W = 32,
@@ -250,28 +250,45 @@ const SEEDS = Object.fromEntries(Object.entries(defs).map(([k, d]) => [k, d.seed
 //  itself, blending into the edge's own over the next 2px, so where two neighbouring tiles both cut back from a third,
 //  they meet at the same depth on their shared edge, with no notch. (Their pixels by the shared edge are all beside the
 //  corner, or past it.)
-const edgeNoise = (x, y, d, seed) => {
+//  (ns, nt) are the noise's cells per lattice step: the default's are about 2px along an edge, (4, 3)'s about 8px.
+const edgeNoise = (x, y, d, seed, ns = 16, nt = 12) => {
   const { along, len } = edgeDist(x, y, d),
     [[ax, ay], [bx, by]] = EDGE[d],
-    at = (a) => lnoise(ax + ((bx - ax) * a) / len - 0.5, ay + ((by - ay) * a) / len - 0.5, 16, 12, seed),
+    at = (a) => lnoise(ax + ((bx - ax) * a) / len - 0.5, ay + ((by - ay) * a) / len - 0.5, ns, nt, seed),
     end = along < len / 2 ? 0 : len,
     w = smoothstep(Math.max(0, Math.min(1, (Math.min(along, len - along) - 1) / 2)));
   return at(end) + (at(Math.max(0, Math.min(len, along))) - at(end)) * w;
 };
 // Where a terrain's ground is drawn: the hex, less a ragged fringe along every edge whose neighbour is not the same
-//  terrain, where the land base shows through. The fringe (soft band included) is at most 8px deep.
+//  terrain, where the land base shows through. The fringe (soft band included) is at most 8px deep, with broad,
+//  rounded bites as well as small ragged ones, and where two unjoined edges meet, the terrain's corner is rounded off.
+const ROUND = 4;
 const coverage = (mask, seed) => {
   const c = new Array(W * H).fill(0);
   for (let y = 0; y < H; y++)
     for (let x = 0; x < W; x++) {
       if (!owns(x, y)) continue;
       let v = 1;
+      const past = {};
       for (const d of DIRS) {
         if (mask.includes(d)) continue;
         const { dist } = edgeDist(x, y, d),
-          depth = 2.5 + edgeNoise(x, y, d, seed) * 4;
+          depth = 1.5 + edgeNoise(x, y, d, seed) * 2 + edgeNoise(x, y, d, seed + 9, 4, 3) * 3;
+        past[d] = dist - depth;
         if (dist < depth) v = 0;
         else if (dist < depth + 1.5 && v) v = 2;
+      }
+      for (const [i, a] of DIRS.entries()) {
+        const b = DIRS[(i + 1) % 6];
+        if (
+          v &&
+          past[a] !== undefined &&
+          past[b] !== undefined &&
+          past[a] < ROUND &&
+          past[b] < ROUND &&
+          Math.hypot(ROUND - past[a], ROUND - past[b]) > ROUND
+        )
+          v = 0;
       }
       c[y * W + x] = v === 2 ? (lhash(x, y, seed + 3) < 0.5 ? 0 : 2) : v;
     }
@@ -357,58 +374,15 @@ sprites['terrain/land'] = base(land);
 sprites['terrain/ocean'] = base(ocean);
 
 // ---------- rivers ----------
-// A channel from the middle to the middle of each joined edge, where the neighbour's channel carries on.
-const WATER = ['#3c6cc4', '#4a7ad0', '#5888da'],
-  BANK = '#8c7a48';
+// The channel (`channel` in lib.js) from the middle to the middle of each joined edge, where the neighbour's carries on.
+const WATER = RIVER.water,
+  BANK = BANKS.mud;
 const river = (mask) => {
-  const water = new Spr(W, H);
-  const brush = (x, y, r) => water.ellipse(x, y, r, r, '#000001');
-  brush(CENTRE[0], CENTRE[1], mask.length ? 3.6 : 4.6);
-  for (const d of mask) {
-    const [ex, ey] = MID[d],
-      // Past the edge, so the channel is full width where it crosses.
-      fx = ex + (ex - CENTRE[0]) * 0.15,
-      fy = ey + (ey - CENTRE[1]) * 0.15,
-      nx = -(fy - CENTRE[1]),
-      ny = fx - CENTRE[0],
-      nl = Math.hypot(nx, ny);
-    for (let i = 0; i <= 40; i++) {
-      const t = i / 40,
-        // Bends one way and back, and is straight at both ends, so it meets the neighbour's square on.
-        wob = Math.sin(t * Math.PI) * 2.2 * (DIRS.indexOf(d) % 2 ? 1 : -1) * (1 - t);
-      brush(
-        CENTRE[0] + (fx - CENTRE[0]) * t + (nx / nl) * wob,
-        CENTRE[1] + (fy - CENTRE[1]) * t + (ny / nl) * wob,
-        2.8
-      );
-    }
-  }
-  const out = new Spr(W, H);
+  const ch = channel({ w: W, h: H, centre: CENTRE, mids: MID, mask, r: 2.8 }),
+    out = new Spr(W, H);
   for (let y = 0; y < H; y++)
-    for (let x = 0; x < W; x++) {
-      if (!owns(x, y)) continue;
-      if (water.get(x, y)) {
-        const edge = [
-          [1, 0],
-          [-1, 0],
-          [0, 1],
-          [0, -1],
-        ].some(([dx, dy]) => water.in(x + dx, y + dy) && !water.get(x + dx, y + dy));
-        out.set(x, y, edge ? '#2c54a4' : glint(x, y, 201) ? '#a8c8f4' : pick(lnoise(x, y, 8, 6, 200), WATER));
-      } else if (
-        [
-          [1, 0],
-          [-1, 0],
-          [0, 1],
-          [0, -1],
-          [1, 1],
-          [-1, -1],
-          [1, -1],
-          [-1, 1],
-        ].some(([dx, dy]) => water.get(x + dx, y + dy))
-      )
-        out.set(x, y, lhash(x, y, 202) > 0.5 ? BANK : '#6e6a34');
-    }
+    for (let x = 0; x < W; x++)
+      if (owns(x, y)) out.set(x, y, riverColour(ch, x, y, lnoise(x, y, 8, 6, 200), lhash(x, y, 201), lhash(x, y, 202)));
   return out;
 };
 for (const m of MASKS) sprites[m.length ? `terrain/river_${named(m)}` : 'terrain/river'] = river(m);
@@ -440,8 +414,12 @@ const coastWedge = (d, bits) => {
   for (let y = 0; y < H; y++)
     for (let x = 0; x < W; x++) {
       if (!owns(x, y) || wedge(x, y) !== d) continue;
-      const dist = Math.min(...land.map((e) => edgeDist(x, y, e).dist), 99),
-        n = lnoise(x, y, 8, 6, 60) * 1.6;
+      // A smooth minimum, so where two shores meet in a bay the beach curves round; and a broad swell as well as a fine
+      //  one, so the beach widens and narrows along the shore.
+      const dist = land.length
+          ? -2 * Math.log(land.reduce((s, e) => s + Math.exp(-edgeDist(x, y, e).dist / 2), 0))
+          : 99,
+        n = lnoise(x, y, 8, 6, 60) * 1 + lnoise(x, y, 2, 2, 64) * 2.4 - 0.6;
       if (dist < 1.2 + n) t.set(x, y, lhash(x, y, 61) > 0.85 ? '#c8b06a' : '#e4d090');
       else if (dist < 2.2 + n) t.set(x, y, '#b8a46a');
       else if (dist < 3.2 + n) t.set(x, y, lhash(x, y, 62) > 0.45 ? '#e8f0fc' : '#7ea4e0');
@@ -456,7 +434,8 @@ for (const d of DIRS)
     sprites[`terrain/coast_${d}_${bits}`] = coastWedge(d, bits);
   }
 
-// Fresh water fanning out from an edge onto the sea, between sand bars.
+// The river's own channel carrying on from an edge into the sea: in its colours and at its width where it crosses the
+//  edge, widening as it goes, then fading into the sea's water through the dither, with a little wet sand at the shore.
 const riverMouth = (d) => {
   const t = new Spr(W, H),
     [mx, my] = MID[d],
@@ -469,11 +448,29 @@ const riverMouth = (d) => {
       const px = x + 0.5 - mx,
         py = y + 0.5 - my,
         along = (px * ax + py * ay) / al,
-        across = (px * ay - py * ax) / al,
-        w = 3 + along * 0.55 + lnoise(x, y, 8, 6, 70) * 1.5;
-      if (along < 0 || along > 12 || Math.abs(across) > w) continue;
-      if (Math.abs(across) > w - 1.4 && along < 8) t.set(x, y, '#e0cc8a');
-      else t.set(x, y, along > 9 && dither(x, y) >= 0.5 ? null : glint(x, y, 71) ? '#a8c8f4' : '#4a80d4');
+        across = Math.abs(px * ay - py * ax) / al,
+        w =
+          2.8 +
+          Math.max(0, along - 2) * 0.25 +
+          (lnoise(x, y, 8, 6, 70) - 0.5) * 1.4 * Math.min(1, Math.max(0, along) / 3),
+        fade = (along - 2) / 6;
+      if (along < -1 || across > w + 1.2) continue;
+      if (across > w) {
+        if (along < 3) t.set(x, y, lhash(x, y, 72) > 0.5 ? '#b8a46a' : BANK);
+        continue;
+      }
+      if (fade > 0 && dither(x, y) < fade) continue;
+      t.set(
+        x,
+        y,
+        across > w - 1 && along < 3
+          ? '#2c54a4'
+          : along < 2 && glint(x, y, 71)
+          ? '#a8c8f4'
+          : along >= 2
+          ? '#3e74c4'
+          : pick(lnoise(x, y, 8, 6, 200), WATER)
+      );
     }
   return t;
 };

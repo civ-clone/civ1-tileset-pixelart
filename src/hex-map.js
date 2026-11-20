@@ -5,7 +5,20 @@ const { specials, imp } = require('./terrain');
 const misc = require('./misc');
 const units = require('./units');
 const combat = require('./combat');
-const { W, H, DIRS, MID, CENTRE, owns, edgeDist, edgeNoise, lhash, dither, sprites: terrain } = require('./hex');
+const {
+  W,
+  H,
+  DIRS,
+  MID,
+  CENTRE,
+  owns,
+  edgeDist,
+  edgeNoise,
+  lhash,
+  lnoise,
+  dither,
+  sprites: terrain,
+} = require('./hex');
 
 // A square-pack sprite moved by (dx, dy) onto a hex-sized canvas, keeping only the pixels the hex owns.
 const onHex = (s, dx = 0, dy = 0) => {
@@ -41,6 +54,14 @@ out['improvements/irrigation'] = (() => {
 out['improvements/mine'] = onHex(imp.mine, 0, 2);
 out['improvements/pollution'] = onHex(imp.pollution, 0, 2);
 
+const BEND = {
+  ne: [0.22, -0.05],
+  e: [-0.12, 0.07],
+  se: [0.06, 0.06],
+  sw: [-0.2, 0.04],
+  w: [0.24, -0.06],
+  nw: [-0.08, -0.07],
+};
 // Roads and railroads: from the middle of the hex to the middle of each of its six edges, where the neighbour's carries
 //  on. A railroad's sleepers are every 4px counted from the edge, so both tiles' sleepers line up.
 for (const d of DIRS) {
@@ -52,12 +73,41 @@ for (const d of DIRS) {
     road = new Spr(W, H),
     rail = new Spr(W, H),
     steps = Math.ceil(len) + 2;
-  for (let i = 0; i <= steps; i++) road.ellipse(cx + ux * i, cy + uy * i, 2.3, 2.3, '#8a6a3c');
-  for (let i = 0; i <= steps; i++) {
-    const x = cx + ux * i,
-      y = cy + uy * i;
-    road.ellipse(x, y, 1.4, 1.4, '#b89460');
-    if (lhash(Math.floor(x), Math.floor(y), 90) > 0.7) road.set(x, y, '#a07e4a');
+  // The track's width and edges wander by noise on the lattice, read where each step of it is, so a neighbour's road
+  //  meets it at the same width; darker ruts run either side of the middle, with the odd stone.
+  // The lane bends to one side and back as it goes, coming in square on at the edge, where the neighbour's carries on.
+  //  Each direction bends its own way and by its own amount, with a smaller wiggle on top (`BEND`), so a run
+  //  through a tile is a gentle S, a C or nearly straight, and a long road wanders like a lane.
+  const lane = (s) => {
+      const t = Math.min(1, s / len),
+        [big, small] = BEND[d],
+        o = len * (big * Math.sin(Math.PI * t) + small * Math.sin(2 * Math.PI * t)) * (1 - t);
+      return [cx + ux * s - uy * o, cy + uy * s + ux * o];
+    },
+    wide = (x, y) => 0.6 + lnoise(x, y, 4, 3, 95) * 0.6 + lnoise(x, y, 16, 12, 97) * 0.3;
+  for (let i = 0; i <= steps * 2; i++) {
+    const [x, y] = lane(i / 2);
+    const k = wide(x, y);
+    road.ellipse(x, y, 2.3 * k, 2.3 * k, '#8a6a3c');
+  }
+  for (let i = 0; i <= steps * 2; i++) {
+    const [x, y] = lane(i / 2);
+    const k = wide(x, y);
+    road.ellipse(x, y, 1.4 * k, 1.4 * k, '#b89460');
+  }
+  for (let i = 0; i <= steps * 2; i++) {
+    // Either side of the lane as it bends, not of the straight line.
+    const [x, y] = lane(i / 2),
+      [ax, ay] = lane(i / 2 + 0.5),
+      [bx, by] = lane(i / 2 - 0.5),
+      tl = Math.hypot(ax - bx, ay - by) || 1,
+      [tx, ty] = [(ax - bx) / tl, (ay - by) / tl];
+    for (const side of [-1, 1]) {
+      const rx = x - ty * side,
+        ry = y + tx * side;
+      if (lhash(Math.floor(rx), Math.floor(ry), 91) > 0.4) road.set(rx, ry, '#8e6e42');
+    }
+    if (lhash(Math.floor(x), Math.floor(y), 90) > 0.93) road.set(x, y, '#d8c49a');
   }
   for (let i = 0; i <= steps * 2; i++) {
     const back = len - i / 2;
