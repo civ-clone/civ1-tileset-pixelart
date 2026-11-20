@@ -1,7 +1,21 @@
 // Terrain: the land and ocean bases, every terrain's 16 join variants, the coast strip, river mouths, specials, the
 //  tile improvements and fog. Every texture repeats every 32px, so a sprite meets its own neighbours (and the other
 //  join variants of its terrain) without a seam.
-const { S, OUTLINE, ramp, R, Spr, hash, channel, riverColour, RIVER, BANKS } = require('./lib');
+const {
+  S,
+  OUTLINE,
+  ramp,
+  R,
+  Spr,
+  hash,
+  channel,
+  riverColour,
+  RIVER,
+  BANKS,
+  BAYER,
+  softGround,
+  clamp01,
+} = require('./lib');
 
 const wrap = (v) => ((v % S) + S) % S;
 // Value noise that repeats every 32px; `f` divides 32.
@@ -28,40 +42,38 @@ const DIRS = ['n', 'e', 's', 'w'];
 const MASKS = [...Array(16).keys()].map((m) => DIRS.filter((d, i) => m & (1 << i)));
 
 // ---------- coverage ----------
-// Where a terrain overlay is drawn: the whole tile, less a ragged fringe along every edge whose neighbour is not the
-//  same terrain, where the land base shows through. The fringe (soft band included) is at most 8px deep and corners
-//  at most 9px, which is what lets features cross a joined edge (see `overlay`).
+// How much of a terrain overlay is drawn at each pixel, from 0 (the land base shows) to 1: the whole tile, less a
+//  ragged fringe along every edge whose neighbour is not the same terrain. The fringe has small ragged bites and
+//  broad, rounded ones, and fades in over 3px about its line rather than stopping there; where two unjoined edges meet,
+//  the corner is rounded off and fades the same way. It is about 6px deep along an edge and 7px at a corner, inside the
+//  8px (9px at corners) that lets features cross a joined edge (see `overlay`).
+const FADE = 3,
+  ROUND = 9;
 const coverage = (mask, seed) => {
   const c = new Array(S * S).fill(1);
   const edge = { n: (x, y) => [y, x], s: (x, y) => [S - 1 - y, x], w: (x, y) => [x, y], e: (x, y) => [S - 1 - x, y] };
   for (let y = 0; y < S; y++)
     for (let x = 0; x < S; x++) {
       let v = 1;
+      const past = {};
       for (const d of DIRS) {
         if (mask.includes(d)) continue;
-        // Small ragged bites and broad, rounded ones.
         const [dist, t] = edge[d](x, y),
-          depth = 1.5 + pnoise(t, DIRS.indexOf(d) * 8, 4, seed) * 2 + pnoise(t, DIRS.indexOf(d) * 8, 16, seed + 9) * 3;
-        if (dist < depth) v = 0;
-        else if (dist < depth + 1.5 && v) v = 2;
+          depth = 1 + pnoise(t, DIRS.indexOf(d) * 8, 4, seed) * 1.5 + pnoise(t, DIRS.indexOf(d) * 8, 16, seed + 9) * 2;
+        // How far past where the fade starts: half of it before the fringe's line and half after, but never in the
+        //  edge's own pixel, so the land always shows there.
+        past[d] = dist + 0.5 - Math.max(1, depth - FADE / 2); // + 0.5: from the pixel's centre, as hex and iso measure
+        v = Math.min(v, clamp01(past[d] / FADE));
       }
       for (const [a, b] of [
         ['n', 'w'],
         ['n', 'e'],
         ['s', 'w'],
         ['s', 'e'],
-      ]) {
-        if (mask.includes(a) || mask.includes(b)) continue;
-        const cx = b === 'w' ? 8.5 : S - 8.5,
-          cy = a === 'n' ? 8.5 : S - 8.5;
-        if (
-          (b === 'w' ? x < cx : x > cx) &&
-          (a === 'n' ? y < cy : y > cy) &&
-          Math.hypot(x + 0.5 - cx, y + 0.5 - cy) > 6.5
-        )
-          v = 0;
-      }
-      c[y * S + x] = v === 2 ? (h1(x, y, seed + 3) < 0.5 ? 0 : 2) : v;
+      ])
+        if (past[a] !== undefined && past[b] !== undefined && past[a] < ROUND && past[b] < ROUND)
+          v = Math.min(v, clamp01((ROUND - Math.hypot(ROUND - past[a], ROUND - past[b])) / FADE));
+      c[y * S + x] = v;
     }
   return c;
 };
@@ -117,7 +129,11 @@ const overlay = (def) => {
     const cov = coverage(mask, def.seed),
       out = new Spr();
     if (def.ground)
-      for (let y = 0; y < S; y++) for (let x = 0; x < S; x++) if (cov[y * S + x]) out.set(x, y, def.ground(x, y));
+      for (let y = 0; y < S; y++)
+        for (let x = 0; x < S; x++) {
+          const a = cov[y * S + x];
+          if (a > 0) out.set(x, y, softGround(a, BAYER[(y % 4) * 4 + (x % 4)] / 16, def.ground(x, y), land(x, y)));
+        }
     const big = new Spr(S * 3, S * 3);
     const mi = MASKS.findIndex((m) => m.join('') === mask.join(''));
     for (const { l, x0, y0, x1, y1, p, id } of layers) {
@@ -515,7 +531,6 @@ terrainSprites.coast_sprite = coastStrip;
 // The river's own channel carrying on from an edge into the sea: in its colours and at its width where it crosses the
 //  edge, widening as it goes, then fading into the sea's water through an ordered dither, with a little wet sand at the
 //  shore. The same 4 × 4 ordered dither as the fog's.
-const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
 // Where the river crosses the edge `dir` of the ocean tile: the middle and half the width of the water in the river
 //  tile's own edge row beyond it, as its channel towards this tile (the opposite edge) draws it.
 const OPPOSITE = { n: 's', s: 'n', e: 'w', w: 'e' };

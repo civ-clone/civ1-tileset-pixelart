@@ -434,6 +434,34 @@
         "Ocean"
       ],
       "matches": {
+        "Grassland": [
+          "Grassland",
+          "@water"
+        ],
+        "Plains": [
+          "Plains",
+          "@water"
+        ],
+        "Desert": [
+          "Desert",
+          "@water"
+        ],
+        "Tundra": [
+          "Tundra",
+          "@water"
+        ],
+        "Arctic": [
+          "Arctic",
+          "@water"
+        ],
+        "Glacier": [
+          "Glacier",
+          "@water"
+        ],
+        "Swamp": [
+          "Swamp",
+          "@water"
+        ],
         "River": [
           "River",
           "@water"

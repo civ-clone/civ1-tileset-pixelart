@@ -28,14 +28,19 @@ a tile is drawn again for a diamond.
 
 - **Variants:** each terrain has an isolated sprite and 15 join variants, one for every set of edges whose neighbour is
   the same terrain.
-- **Edges:** along an edge whose neighbour differs, the terrain stops in a ragged fringe at most about 7px deep, where
-  the land base shows through. It is shallower than the hex pack's, as a diamond is only 32px tall. The grounds are the
+- **Edges:** along an edge whose neighbour differs, the terrain stops in a ragged fringe at most about 6px deep, where
+  the land base shows through. It is kept shallow, as a diamond is only 32px tall. The grounds are the
   square pack's, in its colours.
   - The fringe's depth is set by the point of the edge it is beside, and near a corner by the corner itself.
   - So where two joined tiles both stop at a third, their fringes meet at the same depth, with no notch.
   - It wanders in broad, rounded bites as well as small ragged ones, so a stretch of terrain has a soft outline rather
     than following the diamonds.
-  - Where two edges that both stop meet at a corner, the terrain's own corner is rounded off.
+  - Where two edges that both stop meet at a corner, the terrain's own corner is rounded off, broadly, so a lone
+    tile of it reads as a patch rather than a diamond.
+  - The terrain fades in over about 2px about the fringe's line (never in the edge's own pixel), through the lattice's
+    dither, its first pixels a blend of its ground and the land's, so one runs into the other rather than stopping at a
+    line.
+  - The flatter terrains count the sea as joined and run up to the beach, as the square pack's do.
 - **Desert and plains:** their patterns are fitted to the lattice. The desert's dune ripples are 8px apart, so a row is
   two of them. The plains' wheat strokes each keep to their own 4 × 4 cell.
 - **Features:** these are the square pack's drawings (peaks, mounds, trees, palms, reeds, rocks, cacti, ice). The

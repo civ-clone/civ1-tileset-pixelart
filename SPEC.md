@@ -81,10 +81,19 @@ red with sparks, then shrinks inside dark smoke, which turns grey and breaks up 
 
 ## Terrain
 
-Each terrain has an isolated sprite and 15 join variants, named by the edges (`n`, `e`, `s`, `w`) whose neighbour is
-the same terrain. Along an edge whose neighbour differs, the overlay stops in a ragged fringe at most 8px deep, where
-the land base shows through. It has broad, rounded bites as well as small ragged ones, so a stretch of terrain has a
-soft outline rather than following the squares. Features (peaks, mounds, trees) sit in the same places in every tile:
+Each terrain has an isolated sprite and 15 join variants, named by the edges (`n`, `e`, `s`, `w`) whose neighbour is the
+same terrain. Along an edge whose neighbour differs, the overlay stops in a ragged fringe at most 6px deep, where the
+land base shows through. It has broad, rounded bites as well as small ragged ones, so a stretch of terrain has a soft
+outline rather than following the squares, and a lone tile's corners are well rounded. The terrain fades in over 3px
+about the fringe's line (never in the edge's own pixel), through a 4 × 4 ordered dither, its first pixels a blend of its
+ground and the land's, so one runs into the other rather than stopping at a line.
+
+The flatter terrains (grassland, plains, desert, tundra, arctic and its Civilization II name glacier, and swamp) count
+the sea as joined (`families.terrain.matches`), so they run right up to the beach rather than stopping in a fringe of
+grass there. Forest, jungle, hills and mountains don't, as their features may cross into a joined neighbour, which the
+sea wouldn't draw; no feature of the others does, on any of the three grids.
+
+Features (peaks, mounds, trees) sit in the same places in every tile:
 
 - a feature may cross into a joined neighbour if it keeps 8px clear of the corners, and is then drawn by both tiles.
   That is what lets mountain ranges, hills and forests run on from tile to tile;

@@ -4,7 +4,7 @@
 //
 // Every sprite owns exactly the pixels `IsoProjection.pixelToTile` gives its tile (`owns`), and textures repeat on the
 //  grid's lattice (every 64px across, every 16px down with a 32px shift), so tiles meet with no seam on any edge.
-const { OUTLINE, Spr, hash, channel, riverColour, RIVER, BANKS } = require('./lib');
+const { OUTLINE, Spr, hash, channel, riverColour, RIVER, BANKS, softGround, clamp01, BAYER } = require('./lib');
 const { defs, keepInside, variantsOf } = require('./terrain');
 
 const W = 64,
@@ -87,7 +87,6 @@ const lhash = (x, y, seed) => {
   return hash(a, b, seed);
 };
 // Every period here is a power of two, so a 4 × 4 Bayer table (and even a 1px checker) fits the lattice.
-const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
 const dither = (x, y) => {
   const [xr, yr] = canon(x, y);
   return BAYER[(yr % 4) * 4 + (xr % 4)] / 16;
@@ -170,7 +169,7 @@ const FEATURES = {
   desert: (([cactus, rock2, rock15]) => [Fx(cactus, 40, 14), Fx(rock2, 22, 22), Fx(rock15, 30, 9)])(sq('desert')),
   tundra: (([a, b, c]) => [Fx(a, 20, 14), Fx(b, 42, 20), Fx(c, 30, 26)])(sq('tundra')),
   arctic: (([a, b]) => [Fx(a, 24, 14), Fx(b, 40, 24)])(sq('arctic')),
-  swamp: (([a, b, c]) => [Fx(a, 18, 16), Fx(b, 42, 14), Fx(c, 32, 26)])(sq('swamp')),
+  swamp: (([a, b, c]) => [Fx(a, 18, 16), Fx(b, 39, 17), Fx(c, 32, 26)])(sq('swamp')),
   forest: (([c11, b45, b5, c10, b4, c9, b4b, c10b]) => [
     Fx(c11, 22, 16),
     Fx(b45, 40, 13),
@@ -221,9 +220,10 @@ const edgeNoise = (x, y, d, seed, ns = 32, nt = 8) => {
   return at(end) + (at(Math.max(0, Math.min(len, along))) - at(end)) * w;
 };
 // The diamond less a ragged fringe along every unjoined edge. Its edges slope 1 in 2, so a fringe `dist` deep is about
-//  twice that across: depths are kept shallower than the hex pack's. The fringe has broad, rounded bites as well as
+//  twice that across, so depths are kept shallow. The fringe has broad, rounded bites as well as
 //  small ragged ones, and where two unjoined edges meet, the terrain's corner is rounded off.
-const ROUND = 3.5;
+const ROUND = 7,
+  FADE = 2.4;
 const CORNER_EDGES = [
   ['nw', 'ne'],
   ['ne', 'se'],
@@ -240,22 +240,17 @@ const coverage = (mask, seed) => {
       for (const d of DIRS) {
         if (mask.includes(d)) continue;
         const { dist } = edgeDist(x, y, d),
-          depth = 1 + edgeNoise(x, y, d, seed) * 1.6 + edgeNoise(x, y, d, seed + 9, 8, 2) * 3.2;
-        past[d] = dist - depth;
-        if (dist < depth) v = 0;
-        else if (dist < depth + 1.2 && v) v = 2;
+          depth = 1 + edgeNoise(x, y, d, seed) * 1.2 + edgeNoise(x, y, d, seed + 9, 8, 2) * 2.2;
+        // How far past where the fade starts: half of it before the fringe's line and half after, but never in the
+        //  edge's own pixel, so the land always shows there.
+        past[d] = dist - Math.max(1, depth - FADE / 2);
+        v = Math.min(v, clamp01(past[d] / FADE));
       }
-      for (const [a, b] of CORNER_EDGES)
-        if (
-          v &&
-          past[a] !== undefined &&
-          past[b] !== undefined &&
-          past[a] < ROUND &&
-          past[b] < ROUND &&
-          Math.hypot(ROUND - past[a], ROUND - past[b]) > ROUND
-        )
-          v = 0;
-      c[y * W + x] = v === 2 ? (lhash(x, y, seed + 3) < 0.5 ? 0 : 2) : v;
+      for (const [a, b] of CORNER_EDGES) {
+        if (past[a] !== undefined && past[b] !== undefined && past[a] < ROUND && past[b] < ROUND)
+          v = Math.min(v, clamp01((ROUND - Math.hypot(ROUND - past[a], ROUND - past[b])) / FADE));
+      }
+      c[y * W + x] = v;
     }
   return c;
 };
@@ -290,7 +285,11 @@ const overlay = (name) => {
     const cov = coverage(mask, seed),
       out = new Spr(W, H),
       mi = DIRS.reduce((m, d, i) => (mask.includes(d) ? m | (1 << i) : m), 0);
-    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (cov[y * W + x]) out.set(x, y, ground(x, y) ?? null);
+    for (let y = 0; y < H; y++)
+      for (let x = 0; x < W; x++) {
+        const a = cov[y * W + x];
+        if (a > 0) out.set(x, y, softGround(a, dither(x, y), ground(x, y) ?? null, land(x, y)));
+      }
     const big = new Spr(W * 3, H * 3);
     for (const { l, id, p, into } of layers) {
       if (into === null ? !keepInside(variant, mi, id, seed, p) : !mask.includes(into)) continue;
