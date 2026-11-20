@@ -145,6 +145,13 @@ stable hash of the square's position (`counts` says how many each terrain has, b
 | hills | A rocky outcrop; a cairn of stacked stones |
 | mountains | A snowfield on the slope; a scree slide |
 
+## Other rules' names
+
+The descriptor names what other rules call by another name: Civilization II's Glacier is drawn with the arctic
+sprites, its variants and flavour pictures among them, and its River, a feature on any land rather than a terrain of
+its own (`families.terrain.features`), with the river sprites over that land's terrain. The river sprites are only the
+channel and its banks, so the terrain under them shows.
+
 ## Specials
 
 Drawn over the terrain, in the lower right of the tile unless noted.

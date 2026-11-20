@@ -70,6 +70,13 @@ tile's middle.
   where it crosses the edge, cutting through the beach and its foam, then turning the coast's shallow-water colour and
   fading out through an ordered dither a few pixels into the sea, with a little wet sand where it leaves the shore.
 
+## Other rules' names
+
+The descriptor names what other rules call by another name: Civilization II's Glacier is drawn with the arctic
+sprites, its variants and flavour pictures among them, and its River, a feature on any land rather than a terrain of
+its own (`families.terrain.features`), with the river sprites over that land's terrain. The river sprites are only the
+channel and its banks, so the terrain under them shows.
+
 ## Improvements and map
 
 - **specials:** the square pack's, moved 2px left and 1px down onto the hex, except the shield, which the descriptor
