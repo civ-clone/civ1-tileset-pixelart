@@ -46,8 +46,11 @@ a tile is drawn again for a diamond.
   - none reaches two neighbours.
 - **Mountains and hills:** a big peak or mound in the middle, and smaller ones at the middles of the edges.
 - **Rivers:** a blue channel with muddy banks from the middle of the diamond to the middle of each joined edge, where
-  the neighbour's channel carries on. It bends once and comes in straight at the edge. Rivers also join the sea. An
-  isolated river is a small pool.
+  the neighbour's channel carries on. It runs in one smooth curve between two edges, meandering gently on a straight
+  run, and comes in straight for the first fifth of the way from each edge, so it meets the neighbour's channel exactly.
+  Three or more channels meet in a pool a little off the middle, a lone one ends in a spring, and an isolated river is a
+  small pond. The water is darker along its line, and the bank is wider here and there, with sand and reeds, away from
+  the edges. Rivers also join the sea.
 
 ## Variants and flavour
 
@@ -68,8 +71,8 @@ tile's middle.
     rather than meeting in a point, so the coastline reads as rounded rather than following the diamonds.
   - The descriptor puts them together as named corners, each at the tile's corner.
 - **River mouths:** `river_mouth_{edge}`, on the ocean tile: the river's own channel, in its colours and at its width
-  where it crosses the edge, carrying on a little way into the sea, widening as it goes, and fading into the sea's water
-  through the lattice's dither, with a little wet sand where it leaves the shore.
+  where it crosses the edge, cutting through the beach and its foam, then turning the coast's shallow-water colour and
+  fading out through the lattice's dither a few pixels into the sea, with a little wet sand where it leaves the shore.
 
 ## Other rules' names
 

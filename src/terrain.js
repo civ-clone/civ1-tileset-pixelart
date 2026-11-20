@@ -1,7 +1,7 @@
 // Terrain: the land and ocean bases, every terrain's 16 join variants, the coast strip, river mouths, specials, the
 //  tile improvements and fog. Every texture repeats every 32px, so a sprite meets its own neighbours (and the other
 //  join variants of its terrain) without a seam.
-const { S, OUTLINE, ramp, R, Spr, hash } = require('./lib');
+const { S, OUTLINE, ramp, R, Spr, hash, channel, riverColour, RIVER, BANKS } = require('./lib');
 
 const wrap = (v) => ((v % S) + S) % S;
 // Value noise that repeats every 32px; `f` divides 32.
@@ -431,56 +431,16 @@ for (const [name, def] of Object.entries(defs)) {
 }
 
 // ---------- rivers ----------
-const WATER = ['#3c6cc4', '#4a7ad0', '#5888da'],
-  BANK = '#8c7a48';
-const ends = { n: [16, -1], e: [S, 16], s: [16, S], w: [-1, 16] };
+// The channel (`channel` in lib.js) from the middle of the tile to the middle of each joined edge.
+const WATER = RIVER.water,
+  BANK = BANKS.mud;
+const MIDS = { n: [16, 0], e: [S, 16], s: [16, S], w: [0, 16] };
 const riverSprite = (mask) => {
-  const water = new Spr();
-  const brush = (x, y, r) => water.ellipse(x, y, r, r, '#000001');
-  brush(16, 16, mask.length ? 3.6 : 4.6);
-  for (const d of mask) {
-    const [ex, ey] = ends[d];
-    for (let i = 0; i <= 40; i++) {
-      const t = i / 40,
-        wob = Math.sin(t * Math.PI) * 2.2 * (d === 'n' || d === 'e' ? 1 : -1);
-      const x = 16 + (ex - 16) * t + (d === 'n' || d === 's' ? wob : 0),
-        y = 16 + (ey - 16) * t + (d === 'e' || d === 'w' ? wob : 0);
-      brush(x, y, 2.8);
-    }
-  }
-  const out = new Spr();
+  const ch = channel({ w: S, h: S, centre: [16, 16], mids: MIDS, mask, r: 2.8 }),
+    out = new Spr();
   for (let y = 0; y < S; y++)
-    for (let x = 0; x < S; x++) {
-      if (water.get(x, y)) {
-        const edge = [
-          [1, 0],
-          [-1, 0],
-          [0, 1],
-          [0, -1],
-        ].some(([dx, dy]) => water.in(x + dx, y + dy) && !water.get(x + dx, y + dy));
-        out.set(
-          x,
-          y,
-          edge
-            ? '#2c54a4'
-            : (x + 2 * y) % 7 === 0 && h1(x, y, 201) > 0.4
-            ? '#a8c8f4'
-            : pick(pnoise(x, y, 4, 200), WATER)
-        );
-      } else if (
-        [
-          [1, 0],
-          [-1, 0],
-          [0, 1],
-          [0, -1],
-          [1, 1],
-          [-1, -1],
-          [1, -1],
-          [-1, 1],
-        ].some(([dx, dy]) => water.get(x + dx, y + dy))
-      )
-        out.set(x, y, h1(x, y, 202) > 0.5 ? BANK : '#6e6a34');
-    }
+    for (let x = 0; x < S; x++)
+      out.set(x, y, riverColour(ch, x, y, pnoise(x, y, 4, 200), h1(x, y, 201), h1(x, y, 202)));
   return out;
 };
 for (const m of MASKS) terrainSprites[m.length ? `river_${m.join('')}` : 'river'] = riverSprite(m);
@@ -580,8 +540,8 @@ const riverMouth = (dir) => {
       const along = dir === 'n' ? y : dir === 's' ? S - 1 - y : dir === 'w' ? x : S - 1 - x,
         across = Math.abs((dir === 'n' || dir === 's' ? x : y) + 0.5 - middle),
         // As wide as the channel where it crosses, the noise coming in over the first few pixels so the two meet.
-        w = half + Math.max(0, along - 2) * 0.35 + (pnoise(x, y, 4, 70) - 0.5) * 1.4 * Math.min(1, along / 3),
-        fade = (along - 4) / 8;
+        w = half + Math.max(0, along - 2) * 0.25 + (pnoise(x, y, 4, 70) - 0.5) * 1.4 * Math.min(1, along / 3),
+        fade = (along - 2) / 6;
       if (across > w + 1.5) continue;
       if (across > w) {
         if (along < 3) t.set(x, y, h1(x, y, 72) > 0.5 ? '#b8a46a' : BANK);
@@ -591,11 +551,11 @@ const riverMouth = (dir) => {
       t.set(
         x,
         y,
-        across > w - 1 && along < 4
+        across > w - 1 && along < 3
           ? '#2c54a4'
-          : (x + 2 * y) % 7 === 0 && h1(x, y, 71) > 0.4
+          : along < 2 && (x + 2 * y) % 7 === 0 && h1(x, y, 71) > 0.4
           ? '#a8c8f4'
-          : fade > 0.4
+          : along >= 2
           ? '#3e74c4'
           : pick(pnoise(x, y, 4, 200), WATER)
       );

@@ -5,7 +5,7 @@
 //  meet with no gap and no pixel drawn twice. Textures repeat on the grid's lattice, every 32px across and every 27px
 //  down with a 16px shift (`lnoise`, `lhash`), so a sprite meets copies of itself, and its terrain's other join
 //  variants, with no seam on any of its six edges.
-const { OUTLINE, ramp, R, Spr, hash } = require('./lib');
+const { OUTLINE, ramp, R, Spr, hash, channel, riverColour, RIVER, BANKS } = require('./lib');
 const { defs, keepInside, variantsOf } = require('./terrain');
 
 const W = 32,
@@ -375,58 +375,15 @@ sprites['terrain/land'] = base(land);
 sprites['terrain/ocean'] = base(ocean);
 
 // ---------- rivers ----------
-// A channel from the middle to the middle of each joined edge, where the neighbour's channel carries on.
-const WATER = ['#3c6cc4', '#4a7ad0', '#5888da'],
-  BANK = '#8c7a48';
+// The channel (`channel` in lib.js) from the middle to the middle of each joined edge, where the neighbour's carries on.
+const WATER = RIVER.water,
+  BANK = BANKS.mud;
 const river = (mask) => {
-  const water = new Spr(W, H);
-  const brush = (x, y, r) => water.ellipse(x, y, r, r, '#000001');
-  brush(CENTRE[0], CENTRE[1], mask.length ? 3.6 : 4.6);
-  for (const d of mask) {
-    const [ex, ey] = MID[d],
-      // Past the edge, so the channel is full width where it crosses.
-      fx = ex + (ex - CENTRE[0]) * 0.15,
-      fy = ey + (ey - CENTRE[1]) * 0.15,
-      nx = -(fy - CENTRE[1]),
-      ny = fx - CENTRE[0],
-      nl = Math.hypot(nx, ny);
-    for (let i = 0; i <= 40; i++) {
-      const t = i / 40,
-        // Bends one way and back, and is straight at both ends, so it meets the neighbour's square on.
-        wob = Math.sin(t * Math.PI) * 2.2 * (DIRS.indexOf(d) % 2 ? 1 : -1) * (1 - t);
-      brush(
-        CENTRE[0] + (fx - CENTRE[0]) * t + (nx / nl) * wob,
-        CENTRE[1] + (fy - CENTRE[1]) * t + (ny / nl) * wob,
-        2.8
-      );
-    }
-  }
-  const out = new Spr(W, H);
+  const ch = channel({ w: W, h: H, centre: CENTRE, mids: MID, mask, r: 2.8 }),
+    out = new Spr(W, H);
   for (let y = 0; y < H; y++)
-    for (let x = 0; x < W; x++) {
-      if (!owns(x, y)) continue;
-      if (water.get(x, y)) {
-        const edge = [
-          [1, 0],
-          [-1, 0],
-          [0, 1],
-          [0, -1],
-        ].some(([dx, dy]) => water.in(x + dx, y + dy) && !water.get(x + dx, y + dy));
-        out.set(x, y, edge ? '#2c54a4' : glint(x, y, 201) ? '#a8c8f4' : pick(lnoise(x, y, 8, 6, 200), WATER));
-      } else if (
-        [
-          [1, 0],
-          [-1, 0],
-          [0, 1],
-          [0, -1],
-          [1, 1],
-          [-1, -1],
-          [1, -1],
-          [-1, 1],
-        ].some(([dx, dy]) => water.get(x + dx, y + dy))
-      )
-        out.set(x, y, lhash(x, y, 202) > 0.5 ? BANK : '#6e6a34');
-    }
+    for (let x = 0; x < W; x++)
+      if (owns(x, y)) out.set(x, y, riverColour(ch, x, y, lnoise(x, y, 8, 6, 200), lhash(x, y, 201), lhash(x, y, 202)));
   return out;
 };
 for (const m of MASKS) sprites[m.length ? `terrain/river_${named(m)}` : 'terrain/river'] = river(m);
@@ -495,9 +452,9 @@ const riverMouth = (d) => {
         across = Math.abs(px * ay - py * ax) / al,
         w =
           2.8 +
-          Math.max(0, along - 2) * 0.35 +
+          Math.max(0, along - 2) * 0.25 +
           (lnoise(x, y, 8, 6, 70) - 0.5) * 1.4 * Math.min(1, Math.max(0, along) / 3),
-        fade = (along - 4) / 8;
+        fade = (along - 2) / 6;
       if (along < -1 || across > w + 1.5) continue;
       if (across > w) {
         if (along < 3) t.set(x, y, lhash(x, y, 72) > 0.5 ? '#b8a46a' : BANK);
@@ -507,11 +464,11 @@ const riverMouth = (d) => {
       t.set(
         x,
         y,
-        across > w - 1 && along < 4
+        across > w - 1 && along < 3
           ? '#2c54a4'
-          : glint(x, y, 71)
+          : along < 2 && glint(x, y, 71)
           ? '#a8c8f4'
-          : fade > 0.4
+          : along >= 2
           ? '#3e74c4'
           : pick(lnoise(x, y, 8, 6, 200), WATER)
       );
