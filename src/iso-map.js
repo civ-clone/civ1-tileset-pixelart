@@ -5,7 +5,7 @@
 //  walls are 64 × 48: the tile's diamond is their bottom 32 rows, and they reach 16px above it (`TALL`), as the
 //  descriptor's anchors and overhang say.
 const { KEY_L, KEY_B, R, Spr } = require('./lib');
-const { specials, imp } = require('./terrain');
+const { specials, imp, farmBand, airbase } = require('./terrain');
 const misc = require('./misc');
 const { flavours } = require('./flavour');
 const units = require('./units');
@@ -64,6 +64,28 @@ out['improvements/irrigation'] = (() => {
       }
     }
   return t;
+})();
+// Farmland, in place of the irrigation: its channels and border, with rows of wheat planted between the channels.
+out['improvements/farmland'] = (() => {
+  const t = new Spr(W, H);
+  for (let y = 0; y < H; y++)
+    for (let x = 0; x < W; x++) {
+      if (!owns(x, y)) continue;
+      const d = inside(x, y),
+        k = (((x - 2 * y) % 10) + 10) % 10;
+      if (d >= 3 && d < 4) t.set(x, y, '#6a5a2a');
+      else if (d >= 4) t.set(x, y, farmBand(k < 2 ? 0 : k === 2 ? 1 : k === 9 ? 5 : 2 + ((k - 3) % 3), x, y));
+    }
+  return t;
+})();
+// Airbase: the square pack's runway along the diamond's long axis, kept 3px inside it, with the hangar behind and the
+//  windsock to its right.
+out['improvements/airbase'] = (() => {
+  const t = new Spr(W, H);
+  airbase.hangar(t, 22, 4);
+  airbase.windsock(t, 38, 5);
+  airbase.runway(t, 0, W - 1, 13, (x, y) => owns(x, y) && inside(x, y) >= 3);
+  return onIso(t.outline());
 })();
 out['improvements/mine'] = onIso(imp.mine, 16, -6);
 out['improvements/pollution'] = onIso(imp.pollution, 16, -1);

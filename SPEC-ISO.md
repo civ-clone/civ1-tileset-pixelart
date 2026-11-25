@@ -92,6 +92,9 @@ channel and its banks, so the terrain under them shows.
   shield, which the descriptor places.
 - **irrigation:** water channels between earth ridges running down to the right, inside an earth border 3px in from the
   diamond's edge.
+- **farmland:** the irrigation's channels and border, with rows of ripe wheat between the channels.
+- **airbase:** the square pack's runway along the diamond's long axis, kept 3px inside it, with the hangar behind and
+  the windsock to its right.
 - **mine, pollution, hut:** the square pack's, moved to the diamond's middle.
 - **road_{dir}, railroad_{dir}:** for all eight neighbours, from the middle to the middle of that edge, or to that
   corner.
