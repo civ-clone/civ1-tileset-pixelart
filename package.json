@@ -1,6 +1,6 @@
 {
   "name": "@civ-clone/civ1-tileset-pixelart",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "description": "An original, royalty-free 32px pixel-art tileset for civ.one, for the square, hexagonal and isometric grids, drawn by code from a written spec",
   "repository": "git@github.com:civ-clone/civ1-tileset-pixelart.git",
   "author": "dom111 <dom111@users.noreply.github.com>",
