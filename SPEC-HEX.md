@@ -85,6 +85,8 @@ channel and its banks, so the terrain under them shows.
 - **specials:** the square pack's, moved 2px left and 1px down onto the hex, except the shield, which the descriptor
   places.
 - **irrigation:** diagonal water channels between earth ridges, inside an earth border 4px in from the hexagon's edge.
+- **farmland:** the irrigation's channels and border, with rows of ripe wheat between the channels.
+- **airbase:** the square pack's runway, hangar and windsock, the runway kept 2px inside the hexagon.
 - **mine, pollution, hut:** the square pack's, 2px lower.
 - **road_{edge}, railroad_{edge}:**
   - a road is a packed-dirt track from the middle to the middle of that edge, its width and edges wandering a little by

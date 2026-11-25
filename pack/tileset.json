@@ -56,6 +56,8 @@
       "cursor/torch",
       "general/texture_1",
       "general/texture_2",
+      "improvements/airbase",
+      "improvements/farmland",
       "improvements/irrigation",
       "improvements/mine",
       "improvements/pollution",
@@ -532,8 +534,17 @@
       "sprite": "improvements/irrigation",
       "overTerrain": true
     },
+    "farmland": {
+      "sprite": "improvements/farmland"
+    },
     "mine": {
       "sprite": "improvements/mine"
+    },
+    "fortress": {
+      "sprite": "map/fort"
+    },
+    "airbase": {
+      "sprite": "improvements/airbase"
     },
     "pollution": {
       "sprite": "improvements/pollution"

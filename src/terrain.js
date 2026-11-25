@@ -935,6 +935,73 @@ imp.irrigation = (() => {
     .rect(27, 4, 1, 24, '#6a5a2a');
   return t;
 })();
+// Farmland, drawn in place of the irrigation: the same channels and ridges, with rows of ripe wheat planted between
+//  them. `farmBand(k, x, y)` gives the colour for a pixel `k` steps (0–5) across one channel's band, so each grid can
+//  run the bands its own way; 0 is water, 1 the ridge, 2–4 wheat and 5 a dark furrow.
+const WHEAT = { stalk: '#7a6a1c', ear: '#d8b040', ripe: '#f0d468' };
+const farmBand = (k, x, y) => {
+  if (k === 0) return (x + y) % 4 === 0 ? '#5a90e0' : '#3a6ec0';
+  if (k === 1) return '#6a5a2a';
+  if (k === 5) return '#4a3c1a';
+  // Ears every other pixel along the row, lighter in the middle of the band, on darker stalks between.
+  if ((x + 2 * y + k) % 2) return WHEAT.stalk;
+  return k === 3 ? WHEAT.ripe : WHEAT.ear;
+};
+imp.farmland = (() => {
+  const t = new Spr();
+  for (let y = 5; y < 27; y++) for (let x = 5; x < 27; x++) t.set(x, y, farmBand((x + y) % 6, x, y));
+  t.rect(4, 4, 24, 1, '#6a5a2a')
+    .rect(4, 27, 24, 1, '#6a5a2a')
+    .rect(4, 4, 1, 24, '#6a5a2a')
+    .rect(27, 4, 1, 24, '#6a5a2a');
+  return t;
+})();
+// Airbase: a tarmac runway across the middle with a dashed white centre line and striped thresholds, a corrugated
+//  hangar on an apron behind it, and a windsock on a pole. Open elsewhere, so the terrain shows round it. Each grid
+//  places the parts itself (`airbase`), keeping the runway to its own tile with `keep`.
+const TARMAC = ramp('#26262c', '#3c3c44', '#50505a', '#6a6a74');
+const airbase = {
+  // 7 rows from y0: dark edge lines, tarmac, a dash every 4px along the middle, striped thresholds at each end. The
+  //  ends are where `keep` stops the runway, so a runway kept inside a hex or diamond has its thresholds too.
+  runway: (s, x0, x1, y0, keep = () => true) => {
+    for (let y = y0; y < y0 + 7; y++)
+      for (let x = x0; x <= x1; x++) {
+        if (!keep(x, y)) continue;
+        const edge = y === y0 || y === y0 + 6,
+          from = (d) => keep(x + d, y0 + 3) && x + d >= x0 && x + d <= x1,
+          end = !from(-2) || !from(2);
+        let c = edge ? TARMAC.d : TARMAC.m;
+        if (!edge && end && (y - y0) % 2) c = R.white.h;
+        else if (y === y0 + 3 && from(-5) && from(5) && (x - x0) % 4 < 2) c = R.white.l;
+        s.set(x, y, c);
+      }
+  },
+  // An arched, ribbed roof 14px wide with its top left at (x, y), over a dark doorway, on a 5-row apron from its 7th row.
+  hangar: (s, x, y) => {
+    s.rect(x + 2, y + 6, 10, 5, TARMAC.l);
+    for (let j = 0; j <= 6; j++)
+      for (let i = 0; i <= 13; i++) {
+        const dx = (i + 0.5 - 7) / 7,
+          dy = (j + 0.5 - 7) / 7;
+        if (dx * dx + dy * dy <= 1) s.set(x + i, y + j, i % 2 ? R.metal.d : i < 7 ? R.metal.l : R.metal.m);
+      }
+    s.rect(x + 4, y + 3, 6, 4, '#18181c');
+  },
+  // A pole 9px tall at (x, y) with a red and white striped sock blowing to the right.
+  windsock: (s, x, y) => {
+    s.rect(x, y, 1, 9, R.metal.d);
+    s.rect(x + 1, y, 4, 2, R.red.l)
+      .rect(x + 2, y, 1, 2, R.white.h)
+      .set(x + 4, y + 1, R.white.h);
+  },
+};
+imp.airbase = (() => {
+  const s = new Spr();
+  airbase.hangar(s, 4, 3);
+  airbase.runway(s, 2, 29, 13);
+  airbase.windsock(s, 25, 3);
+  return s.outline();
+})();
 imp.mine = special((s) => {
   s.ball(16, 26, 9, 6, R.stone);
   for (let y = 0; y < S; y++) for (let x = 0; x < S; x++) if (y > 27) s.p[y * S + x] = null;
@@ -1053,4 +1120,17 @@ for (const d of DIRS) {
   fog[`fog_${d}`] = t;
 }
 
-module.exports = { terrainSprites, variantCounts, specials, imp, fog, MASKS, defs, coverage, keepInside, variantsOf };
+module.exports = {
+  terrainSprites,
+  variantCounts,
+  specials,
+  imp,
+  fog,
+  MASKS,
+  defs,
+  coverage,
+  keepInside,
+  variantsOf,
+  farmBand,
+  airbase,
+};

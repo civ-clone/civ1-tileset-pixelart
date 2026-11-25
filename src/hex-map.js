@@ -1,7 +1,7 @@
 // The hexagonal pack's other sprites: improvements, fog, specials, the hut, fort and fortified wall, the city, units
 //  on a hexagonal badge, and the interface, which is the square pack's own. See SPEC-HEX.md.
 const { OUTLINE, KEY_L, KEY_B, R, Spr } = require('./lib');
-const { specials, imp } = require('./terrain');
+const { specials, imp, farmBand, airbase } = require('./terrain');
 const misc = require('./misc');
 const { flavours } = require('./flavour');
 const units = require('./units');
@@ -53,6 +53,26 @@ out['improvements/irrigation'] = (() => {
       }
     }
   return t;
+})();
+// Farmland, in place of the irrigation: its channels and border, with rows of wheat planted between the channels.
+out['improvements/farmland'] = (() => {
+  const t = new Spr(W, H);
+  for (let y = 0; y < H; y++)
+    for (let x = 0; x < W; x++) {
+      if (!owns(x, y)) continue;
+      const d = inside(x, y);
+      if (d >= 4 && d < 5) t.set(x, y, '#6a5a2a');
+      else if (d >= 5) t.set(x, y, farmBand((x + y) % 6, x, y));
+    }
+  return t;
+})();
+// Airbase: the square pack's runway across the middle, kept 2px inside the hex, with the hangar and windsock above it.
+out['improvements/airbase'] = (() => {
+  const t = new Spr(W, H);
+  airbase.hangar(t, 3, 5);
+  airbase.windsock(t, 23, 6);
+  airbase.runway(t, 0, W - 1, 15, (x, y) => owns(x, y) && inside(x, y) >= 2);
+  return onHex(t.outline());
 })();
 out['improvements/mine'] = onHex(imp.mine, 0, 2);
 out['improvements/pollution'] = onHex(imp.pollution, 0, 2);

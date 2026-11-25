@@ -195,6 +195,10 @@ Drawn over the terrain, in the lower right of the tile unless noted.
 
 - **irrigation**: a field of diagonal water channels between earth ridges, inside an earth border. Drawn over the
   terrain (`irrigation.overTerrain`), as this pack's terrain covers the land.
+- **farmland**: the irrigation's channels, ridges and border, with rows of ripe wheat planted between the channels.
+  Drawn in place of the irrigation (`farmland`).
+- **airbase**: a tarmac runway across the middle with dark edges, a dashed white centre line and striped thresholds,
+  a ribbed hangar on a pale apron behind it, and a windsock on a pole to the right. Open elsewhere.
 - **mine**: a timbered shaft in a rock heap, with a pick.
 - **pollution**: olive-grey sludge splats.
 - **road_{dir}**: a packed-dirt track from the centre towards each of 8 directions. Its width and edges wander a little,
@@ -205,6 +209,7 @@ Drawn over the terrain, in the lower right of the tile unless noted.
 - **fog_{n,e,s,w}**: a black ordered-dither fade from that edge, about 7–12px deep.
 - **hut**: a thatched village hut with a smaller hut and a totem.
 - **fort**: an earth bank with a stake palisade round the tile edge and a gate at the front; transparent centre.
+  The descriptor's `fortress` family draws it on a Fortress (Civilization II's, and Civilization's once it has one).
 - **fortify**: a crenellated stone wall frame, about 4px thick, drawn over a fortified unit's badge. The descriptor's
   `cities.walls` draws it over a walled city too, a pixel in, as Civ1 draws its fortified frame over a city with City
   Walls: the occupied box's top and left edges still show, and the renderer cuts off the frame's last row and column.
