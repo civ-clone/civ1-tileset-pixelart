@@ -104,7 +104,8 @@ for (const key of ROAD) {
 }
 for (const [name, c, r] of [
   ['improvements/irrigation', 7, 9],
-  ['improvements/irrigation', 8, 10],
+  ['improvements/farmland', 8, 10],
+  ['improvements/airbase', 8, 9],
   ['improvements/irrigation', 7, 10],
   ['improvements/mine', 9, 5],
   ['terrain/horse', 10, 10],
