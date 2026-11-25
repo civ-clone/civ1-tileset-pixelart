@@ -961,20 +961,22 @@ imp.farmland = (() => {
 //  places the parts itself (`airbase`), keeping the runway to its own tile with `keep`.
 const TARMAC = ramp('#26262c', '#3c3c44', '#50505a', '#6a6a74');
 const airbase = {
-  // 7 rows from y0: dark edge lines, tarmac, a dash every 4px along the middle, striped thresholds at each end.
+  // 7 rows from y0: dark edge lines, tarmac, a dash every 4px along the middle, striped thresholds at each end. The
+  //  ends are where `keep` stops the runway, so a runway kept inside a hex or diamond has its thresholds too.
   runway: (s, x0, x1, y0, keep = () => true) => {
     for (let y = y0; y < y0 + 7; y++)
       for (let x = x0; x <= x1; x++) {
         if (!keep(x, y)) continue;
         const edge = y === y0 || y === y0 + 6,
-          end = x <= x0 + 1 || x >= x1 - 1;
+          from = (d) => keep(x + d, y0 + 3) && x + d >= x0 && x + d <= x1,
+          end = !from(-2) || !from(2);
         let c = edge ? TARMAC.d : TARMAC.m;
         if (!edge && end && (y - y0) % 2) c = R.white.h;
-        else if (y === y0 + 3 && x >= x0 + 5 && x <= x1 - 5 && (x - x0 - 5) % 4 < 2) c = R.white.l;
+        else if (y === y0 + 3 && from(-5) && from(5) && (x - x0) % 4 < 2) c = R.white.l;
         s.set(x, y, c);
       }
   },
-  // An arched, ribbed roof 14px wide with its top left at (x, y), over a dark doorway, on an apron running 4px below.
+  // An arched, ribbed roof 14px wide with its top left at (x, y), over a dark doorway, on a 5-row apron from its 7th row.
   hangar: (s, x, y) => {
     s.rect(x + 2, y + 6, 10, 5, TARMAC.l);
     for (let j = 0; j <= 6; j++)
